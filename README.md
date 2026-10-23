@@ -59,17 +59,17 @@ winget install --id ArtifexSoftware.GhostScript -e
 
 Kurduktan sonra Araçlar › **Yeniden tara**. PNG/JPG/BMP/TIFF/GIF dönüşümleri, görsel→PDF ve PDF→PNG/JPG hiçbir ek araç istemez (Windows'un kendi bileşenlerini kullanır).
 
-## Başkasına göndermek: kurulum dosyası
+## Kurulum dosyası
 
 ```
 build-installer.cmd
 ```
 
-`dist\Kumkat-Kurulum-0.1.0.exe` üretir. Bunu göndermen yeterli; alıcıda .NET kurulu olması gerekmez ve kurulum yönetici izni istemez. Kurulumda şu seçenekler sorulur: Windows ile başlat, Gönder menüsü, klasik sağ tık menüsü, FFmpeg (varsayılan açık) ve LibreOffice. Kaldırma işlemi Ayarlar › Uygulamalar'dan yapılır ve Kumkat'ın eklediği her şeyi temizler.
+`dist\Kumkat-Kurulum-0.1.0.exe` üretir. Kurulumda şu seçenekler sorulur: Windows ile başlat, Gönder menüsü, klasik sağ tık menüsü, FFmpeg (varsayılan açık) ve LibreOffice. Kaldırma işlemi Ayarlar › Uygulamalar'dan yapılır ve Kumkat'ın eklediği her şeyi temizler.
 
 Derlemek için bir kerelik Inno Setup gerekir: `winget install --id JRSoftware.InnoSetup -e`
 
-Not: Exe dijital olarak imzalı değil. Bu yüzden alıcı ilk açışta "Windows bilgisayarınızı korudu" uyarısı görebilir; **Ek bilgi › Yine de çalıştır** demesi yeterli.
+Not: Exe dijital olarak imzalı değil. Bu yüzden ilk açışta "Windows bilgisayarınızı korudu" uyarısı çıkabilir; **Ek bilgi › Yine de çalıştır** denmesi yeterli.
 
 ## Derleme
 
