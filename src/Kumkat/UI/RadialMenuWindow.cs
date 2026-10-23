@@ -54,30 +54,32 @@ namespace Kumkat.UI
     {
         private const double Dim = 380;
         private const double C = Dim / 2;
-        private const double Ri = 62;
-        private const double Ro = 158;
+        private const double Ri = 56;        // ortadaki göbek (dosya türü/adı yazar)
+        private const double Ro = 150;       // dilimlerin dış yarıçapı
+        private const double PithBand = 14;  // krem ak bant
         private const double Peel = 12;      // kabuk kalınlığı
-        private const double Membrane = 5;   // dilimler arasındaki zar (sabit genişlik)
-        private const double Round = 10;     // dilim köşelerinin yuvarlaklığı
+        private const double Membrane = 6;   // dilimler arasındaki zar (sabit genişlik)
+        private const double Round = 12;     // dilim köşelerinin yuvarlaklığı
 
-        // Kumkat paleti (bkz. Theme.cs)
-        private static readonly Brush PeelBrush = Theme.Radial(C, C, Ro + Peel, Theme.Orange, Theme.Aperol, 0.90);
-        private static readonly Brush ZestBrush = Theme.Solid(Theme.OrangeLight, 0xB0);
-        private static readonly Brush PithBrush = Theme.Radial(C, C, Ro + 2, Theme.Pith, Theme.Cloud, 0.55);
-        private static readonly Brush SegmentBrush = Theme.Radial(C, C, Ro, Theme.MimosaLight, Theme.Mimosa, 0.35);
-        private static readonly Brush HoverBrush = Theme.Radial(C, C, Ro, Theme.OrangeLight, Theme.Orange, 0.35);
+        // Kumkat paleti (bkz. Theme.cs) — gerçek bir portakal dilimi gibi
+        private const double Rind0 = Ro + PithBand;          // kabuğun iç kenarı
+        private const double Rind1 = Ro + PithBand + Peel;   // kabuğun dış kenarı
+        private static readonly Brush PeelBrush = Theme.Radial3(C, C, Rind1, Theme.OrangeLight, 0.88, Theme.Orange, 0.95, Theme.Aperol);
+        private static readonly Brush PithBrush = Theme.Radial3(C, C, Rind0, Theme.Cream, 0.30, Theme.Cream, 0.86, Theme.CreamDeep);
+        private static readonly Brush SegmentBrush = Theme.Radial3(C, C, Ro, Theme.Juice, 0.38, Theme.Orange, 0.85, Theme.JuiceDeep);
+        private static readonly Brush HoverBrush = Theme.Radial3(C, C, Ro, Theme.Orange, 0.38, Theme.Aperol, 0.85, Theme.AperolDeep);
         private static readonly Brush DisabledBrush = Theme.Radial(C, C, Ro, Theme.AzulLight, Theme.Azul, 0.35);
         private static readonly Brush DisabledHoverBrush = Theme.Solid(Theme.AzulDeep);
-        private static readonly Brush CoreBrush = Theme.Radial(C, C, Ri, Colors.White, Theme.Cloud, 0.25);
+        private static readonly Brush CoreBrush = Theme.Radial3(C, C, Ri, Colors.White, 0.0, Theme.Cream, 0.6, Theme.CreamDeep);
         private static readonly Brush TitleBrush = Theme.Solid(Theme.Aperol);
-        private static readonly Brush CenterSubBrush = Theme.Solid(Theme.AzulDeep);
-        private static readonly Brush LabelBrush = Theme.Solid(Theme.Rind);
-        private static readonly Brush LabelSubBrush = Theme.Solid(Theme.RindSoft);
-        private static readonly Brush LabelDisabledBrush = Theme.Solid(Theme.Ink, 0xB0);
+        private static readonly Brush CenterSubBrush = Theme.Solid(Theme.Ink);
+        private static readonly Brush LabelBrush = Theme.Solid(Colors.White);
+        private static readonly Brush LabelSubBrush = Theme.Solid(Color.FromRgb(0xFF, 0xF0, 0xDC));
+        private static readonly Brush LabelDisabledBrush = Theme.Solid(Theme.Ink, 0xC0);
         private static readonly Brush LabelHoverBrush = Theme.Solid(Colors.White);
-        private static readonly Brush LabelHoverSubBrush = Theme.Solid(Color.FromRgb(0xFF, 0xEB, 0xD6));
+        private static readonly Brush LabelHoverSubBrush = Theme.Solid(Color.FromRgb(0xFF, 0xE4, 0xCC));
         private static readonly Brush PillBrush = Theme.Solid(Theme.Ink, 0xEE);
-        private static readonly Brush PillTextBrush = Theme.Solid(Theme.Cloud);
+        private static readonly Brush PillTextBrush = Theme.Solid(Theme.Cream);
         private static readonly Brush HitBrush = Frozen(Color.FromArgb(1, 0, 0, 0)); // görünmez ama fare/sürükleme yakalar
 
         private readonly bool _dropMode;
@@ -208,36 +210,23 @@ namespace Kumkat.UI
             _labels.Clear();
             _canvas.Children.Clear();
 
-            // kabuk: Aperol→Orange, gölgeli
+            // kabuk
             var peel = new Ellipse
             {
-                Width = (Ro + Peel) * 2,
-                Height = (Ro + Peel) * 2,
+                Width = Rind1 * 2,
+                Height = Rind1 * 2,
                 Fill = PeelBrush,
-                Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 3, Opacity = 0.35, Color = Color.FromRgb(0x5A, 0x24, 0x0E) },
+                Effect = new DropShadowEffect { BlurRadius = 14, ShadowDepth = 3, Opacity = 0.35, Color = Theme.Rind },
                 IsHitTestVisible = false,
             };
-            Canvas.SetLeft(peel, C - Ro - Peel);
-            Canvas.SetTop(peel, C - Ro - Peel);
+            Canvas.SetLeft(peel, C - Rind1);
+            Canvas.SetTop(peel, C - Rind1);
             _canvas.Children.Add(peel);
 
-            // kabuktaki yağ gözenekleri (zest): sabit desen, her açılışta aynı
-            for (int k = 0; k < 64; k++)
-            {
-                double ang = k * 360.0 / 64 + (k % 3) * 2.1;
-                double rr = Ro + Peel * (k % 2 == 0 ? 0.45 : 0.72);
-                double size = k % 4 == 0 ? 2.4 : 1.6;
-                Point zp = Polar(rr, ang);
-                var dot = new Ellipse { Width = size, Height = size, Fill = ZestBrush, IsHitTestVisible = false };
-                Canvas.SetLeft(dot, zp.X - size / 2);
-                Canvas.SetTop(dot, zp.Y - size / 2);
-                _canvas.Children.Add(dot);
-            }
-
-            // ak kısım (beyaz zar)
-            var pith = new Ellipse { Width = (Ro + 2) * 2, Height = (Ro + 2) * 2, Fill = PithBrush, IsHitTestVisible = false };
-            Canvas.SetLeft(pith, C - Ro - 2);
-            Canvas.SetTop(pith, C - Ro - 2);
+            // krem ak bant
+            var pith = new Ellipse { Width = Rind0 * 2, Height = Rind0 * 2, Fill = PithBrush, IsHitTestVisible = false };
+            Canvas.SetLeft(pith, C - Rind0);
+            Canvas.SetTop(pith, C - Rind0);
             _canvas.Children.Add(pith);
 
             _ring = new Canvas { Width = Dim, Height = Dim, IsHitTestVisible = false, RenderTransform = new RotateTransform(0, C, C) };
@@ -251,7 +240,7 @@ namespace Kumkat.UI
                 for (int i = 0; i < 8; i++)
                 {
                     var deco = MakeSegment(i * 45.0, 45.0, SegmentBrush);
-                    deco.Opacity = 0.55;
+                    deco.Opacity = 0.75;
                     _ring.Children.Add(deco);
                 }
             }
@@ -282,11 +271,16 @@ namespace Kumkat.UI
                         TextAlignment = TextAlignment.Center,
                         Visibility = string.IsNullOrEmpty(entry.Sub) && !entry.IsTool ? Visibility.Collapsed : Visibility.Visible,
                     };
-                    var stack = new StackPanel { Width = 84, IsHitTestVisible = false };
+                    var stack = new StackPanel
+                    {
+                        Width = 84,
+                        IsHitTestVisible = false,
+                        Effect = entry.Enabled ? new DropShadowEffect { BlurRadius = 4, ShadowDepth = 1, Opacity = 0.55, Color = Theme.Rind } : null,
+                    };
                     stack.Children.Add(label);
                     stack.Children.Add(subLabel);
                     stack.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                    Point p = Polar((Ri + Ro) / 2 + 6, mid);
+                    Point p = Polar((Ri + Ro) / 2 + 8, mid);
                     Canvas.SetLeft(stack, p.X - 42);
                     Canvas.SetTop(stack, p.Y - stack.DesiredSize.Height / 2);
                     _ring.Children.Add(stack);
@@ -300,13 +294,13 @@ namespace Kumkat.UI
                 Width = (Ri - 2) * 2,
                 Height = (Ri - 2) * 2,
                 Fill = CoreBrush,
-                Stroke = Theme.Solid(Theme.Mimosa, 0x90),
-                StrokeThickness = 1.5,
+                Stroke = null,
                 IsHitTestVisible = false,
             };
             Canvas.SetLeft(center, C - Ri + 2);
             Canvas.SetTop(center, C - Ri + 2);
             _canvas.Children.Add(center);
+
 
             // metin blokları önceki kurulumdaki panelden ayrılmalı (WPF'de bir öğenin tek ebeveyni olur)
             (_centerTitle.Parent as Panel)?.Children.Remove(_centerTitle);
@@ -344,7 +338,7 @@ namespace Kumkat.UI
             };
             pill.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
             Canvas.SetLeft(pill, C - pill.DesiredSize.Width / 2);
-            Canvas.SetTop(pill, Math.Min(Dim - pill.DesiredSize.Height - 1, C + Ro - pill.DesiredSize.Height / 2));
+            Canvas.SetTop(pill, Math.Min(Dim - pill.DesiredSize.Height - 1, C + Rind1 - pill.DesiredSize.Height / 2 - 2));
             _canvas.Children.Add(pill);
         }
 
@@ -432,7 +426,7 @@ namespace Kumkat.UI
             double half = Round / 2;
             return new ShapePath
             {
-                Data = SegmentGeometry(midDeg, stepDeg, Ri + 4 + half, Ro - 4 - half, Membrane / 2 + half),
+                Data = SegmentGeometry(midDeg, stepDeg, Ri + 2 + half, Ro - half, Membrane / 2 + half),
                 Fill = brush,
                 Stroke = brush,
                 StrokeThickness = Round,

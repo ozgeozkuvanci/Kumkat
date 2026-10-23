@@ -24,10 +24,33 @@ namespace Kumkat.UI
         public static readonly Color Rind = Color.FromRgb(0x5A, 0x24, 0x0E);     // dilim üstündeki koyu metin
         public static readonly Color RindSoft = Color.FromRgb(0x8E, 0x45, 0x1C);
         public static readonly Color Pith = Color.FromRgb(0xF4, 0xF1, 0xEC);     // ak kısmın en açık tonu
+        public static readonly Color Cream = Color.FromRgb(0xFB, 0xF1, 0xDE);    // portakal akı (krem)
+        public static readonly Color CreamDeep = Color.FromRgb(0xF0, 0xDB, 0xB4);
+        public static readonly Color Juice = Color.FromRgb(0xF9, 0xC2, 0x68);    // dilimin merkeze yakın açık tonu
+        public static readonly Color JuiceDeep = Color.FromRgb(0xD8, 0x67, 0x1A); // dilimin kabuğa yakın koyu tonu
+        public static readonly Color AperolDeep = Color.FromRgb(0x9E, 0x3F, 0x14);
 
         public static SolidColorBrush Solid(Color c, byte alpha = 0xFF)
         {
             var b = new SolidColorBrush(Color.FromArgb(alpha, c.R, c.G, c.B));
+            b.Freeze();
+            return b;
+        }
+
+        /// <summary>Üç duraklı mutlak radyal degrade (iç → orta → dış).</summary>
+        public static Brush Radial3(double cx, double cy, double radius, Color inner, double innerStop, Color middle, double middleStop, Color outer)
+        {
+            var b = new RadialGradientBrush
+            {
+                MappingMode = BrushMappingMode.Absolute,
+                Center = new Point(cx, cy),
+                GradientOrigin = new Point(cx, cy),
+                RadiusX = radius,
+                RadiusY = radius,
+            };
+            b.GradientStops.Add(new GradientStop(inner, innerStop));
+            b.GradientStops.Add(new GradientStop(middle, middleStop));
+            b.GradientStops.Add(new GradientStop(outer, 1.0));
             b.Freeze();
             return b;
         }
