@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -27,13 +26,20 @@ namespace Kumkat.UI
         private const double HandleSize = 10;
         private const double MinSel = 12;
 
-        private static readonly Brush Bg = Frozen(Color.FromRgb(0x17, 0x18, 0x1C));
-        private static readonly Brush Bar = Frozen(Color.FromRgb(0x22, 0x24, 0x2A));
-        private static readonly Brush Dim = Frozen(Color.FromArgb(0x9A, 0, 0, 0));
-        private static readonly Brush Accent = Frozen(Color.FromRgb(0xFF, 0x7A, 0x1A));
-        private static readonly Brush Thirds = Frozen(Color.FromArgb(0x70, 0xFF, 0xFF, 0xFF));
-        private static readonly Brush Fore = Frozen(Colors.White);
-        private static readonly Brush Muted = Frozen(Color.FromArgb(0xA0, 0xFF, 0xFF, 0xFF));
+        // Kumkat paleti
+        private static readonly Brush Bg = Theme.Solid(Theme.Ink);
+        private static readonly Brush Bar = Theme.Solid(Theme.Cloud);
+        private static readonly Brush Dim = Theme.Solid(Theme.Ink, 0xB0);
+        private static readonly Brush Accent = Theme.Solid(Theme.Orange);
+        private static readonly Brush AccentHover = Theme.Solid(Theme.Aperol);
+        private static readonly Brush Thirds = Theme.Solid(Theme.Mimosa, 0x90);
+        private static readonly Brush Fore = Theme.Solid(Colors.White);
+        private static readonly Brush Muted = Theme.Solid(Theme.Cloud, 0xC0);
+        private static readonly Brush ChipBg = Theme.Solid(Colors.White, 0x80);
+        private static readonly Brush ChipHover = Theme.Solid(Colors.White);
+        private static readonly Brush ChipOn = Theme.Solid(Theme.Mimosa);
+        private static readonly Brush ChipText = Theme.Solid(Theme.Ink);
+        private static readonly Brush ChipOnText = Theme.Solid(Theme.Rind);
 
         private readonly int _pixW, _pixH;
         private readonly double _w, _h; // görüntünün ekrandaki boyutu (DIP)
@@ -43,7 +49,7 @@ namespace Kumkat.UI
         private readonly ShapeLine[] _thirds = new ShapeLine[4];
         private readonly ShapeRect[] _handles = new ShapeRect[8];
         private readonly TextBlock _sizeText;
-        private readonly List<ToggleButton> _ratioButtons = new List<ToggleButton>();
+        private readonly List<Border> _ratioChips = new List<Border>();
 
         private Rect _sel;
         private double? _ratio; // genişlik / yükseklik (null = serbest)
@@ -93,7 +99,7 @@ namespace Kumkat.UI
                 _canvas.Children.Add(_thirds[i]);
             }
 
-            _border = new ShapeRect { Stroke = Fore, StrokeThickness = 1.5, IsHitTestVisible = false };
+            _border = new ShapeRect { Stroke = Theme.Solid(Theme.Mimosa), StrokeThickness = 2, IsHitTestVisible = false };
             _canvas.Children.Add(_border);
 
             for (int i = 0; i < 8; i++)
@@ -102,8 +108,8 @@ namespace Kumkat.UI
                 {
                     Width = HandleSize,
                     Height = HandleSize,
-                    Fill = Fore,
-                    Stroke = Accent,
+                    Fill = Theme.Solid(Theme.Mimosa),
+                    Stroke = Theme.Solid(Theme.Aperol),
                     StrokeThickness = 2,
                     IsHitTestVisible = false,
                 };
@@ -117,7 +123,7 @@ namespace Kumkat.UI
 
             // ---------------------------------------------------- üst çubuk
             var bar = new DockPanel { Background = Bar, LastChildFill = false };
-            var ratios = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10, 8, 10, 8) };
+            var ratios = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 9, 12, 9), VerticalAlignment = VerticalAlignment.Center };
             AddRatio(ratios, "Serbest", null, true);
             AddRatio(ratios, "1:1", 1.0, false);
             AddRatio(ratios, "4:3", 4.0 / 3, false);
@@ -128,18 +134,16 @@ namespace Kumkat.UI
             DockPanel.SetDock(ratios, Dock.Left);
             bar.Children.Add(ratios);
 
-            var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(10, 8, 10, 8) };
-            var cancel = MakeButton("İptal", false);
-            cancel.Click += (_, __) => CloseOnce();
-            var ok = MakeButton(fileCount > 1 ? $"Kırp ({fileCount} dosya)" : "Kırp", true);
-            ok.Click += (_, __) => Confirm();
+            var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 9, 12, 9), VerticalAlignment = VerticalAlignment.Center };
+            var cancel = MakeButton("İptal", false, CloseOnce);
+            var ok = MakeButton(fileCount > 1 ? $"Kırp ({fileCount} dosya)" : "Kırp", true, Confirm);
             actions.Children.Add(cancel);
             actions.Children.Add(ok);
             DockPanel.SetDock(actions, Dock.Right);
             bar.Children.Add(actions);
 
             // ---------------------------------------------------- alt bilgi
-            _sizeText = new TextBlock { Foreground = Fore, FontSize = 12, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
+            _sizeText = new TextBlock { Foreground = Theme.Solid(Theme.Mimosa), FontSize = 12, FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
             var hint = new TextBlock
             {
                 Foreground = Muted,
@@ -176,41 +180,60 @@ namespace Kumkat.UI
             return b;
         }
 
-        private static Button MakeButton(string text, bool primary)
+        /// <summary>Palete uyan, yuvarlak köşeli düğme (Windows'un mavi vurgusu olmadan).</summary>
+        private static Border MakeButton(string text, bool primary, Action onClick)
         {
-            return new Button
+            Brush normal = primary ? Accent : ChipBg, hover = primary ? AccentHover : ChipHover;
+            var b = new Border
             {
-                Content = text,
+                Background = normal,
+                CornerRadius = new CornerRadius(14),
+                Padding = new Thickness(18, 6, 18, 7),
                 Margin = new Thickness(6, 0, 0, 0),
-                Padding = new Thickness(16, 5, 16, 5),
-                Background = primary ? Accent : Bar,
-                Foreground = primary ? Brushes.Black : Fore,
-                BorderBrush = primary ? Accent : Muted,
-                FontWeight = primary ? FontWeights.Bold : FontWeights.Normal,
                 Cursor = Cursors.Hand,
-                Focusable = false, // Enter/Esc pencere düzeyinde işlenir, iki kez tetiklenmesin
+                Child = new TextBlock
+                {
+                    Text = text,
+                    Foreground = primary ? Fore : ChipText,
+                    FontWeight = primary ? FontWeights.Bold : FontWeights.SemiBold,
+                    FontSize = 13,
+                },
             };
+            b.MouseEnter += (_, __) => b.Background = hover;
+            b.MouseLeave += (_, __) => b.Background = normal;
+            b.MouseLeftButtonUp += (_, e) => { e.Handled = true; onClick(); };
+            return b;
         }
 
         private void AddRatio(Panel host, string label, double? ratio, bool isChecked)
         {
-            var b = new ToggleButton
+            var text = new TextBlock { Text = label, FontSize = 12.5, FontWeight = FontWeights.SemiBold, Foreground = isChecked ? ChipOnText : ChipText };
+            var chip = new Border
             {
-                Content = label,
-                IsChecked = isChecked,
-                Margin = new Thickness(0, 0, 4, 0),
-                Padding = new Thickness(10, 4, 10, 4),
-                Foreground = Brushes.Black,
+                Child = text,
+                Background = isChecked ? ChipOn : ChipBg,
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(12, 4, 12, 5),
+                Margin = new Thickness(0, 0, 6, 0),
                 Cursor = Cursors.Hand,
-                Focusable = false,
+                Tag = isChecked,
             };
-            b.Click += (_, __) =>
+            chip.MouseEnter += (_, __) => { if (!(chip.Tag is true)) chip.Background = ChipHover; };
+            chip.MouseLeave += (_, __) => { if (!(chip.Tag is true)) chip.Background = ChipBg; };
+            chip.MouseLeftButtonUp += (_, e) =>
             {
-                foreach (var other in _ratioButtons) other.IsChecked = ReferenceEquals(other, b);
+                e.Handled = true;
+                foreach (var other in _ratioChips)
+                {
+                    bool on = ReferenceEquals(other, chip);
+                    other.Tag = on;
+                    other.Background = on ? ChipOn : ChipBg;
+                    if (other.Child is TextBlock t) t.Foreground = on ? ChipOnText : ChipText;
+                }
                 SetRatio(ratio);
             };
-            _ratioButtons.Add(b);
-            host.Children.Add(b);
+            _ratioChips.Add(chip);
+            host.Children.Add(chip);
         }
 
         // ------------------------------------------------------------ oran

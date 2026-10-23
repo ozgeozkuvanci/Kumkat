@@ -55,20 +55,29 @@ namespace Kumkat.UI
         private const double Dim = 380;
         private const double C = Dim / 2;
         private const double Ri = 62;
-        private const double Ro = 162;
-        private const double GapDeg = 1.6;
+        private const double Ro = 158;
+        private const double Peel = 12;      // kabuk kalınlığı
+        private const double Membrane = 5;   // dilimler arasındaki zar (sabit genişlik)
+        private const double Round = 10;     // dilim köşelerinin yuvarlaklığı
 
-        private static readonly Brush RingBrush = Frozen(Color.FromArgb(0xF2, 0x1E, 0x20, 0x25));
-        private static readonly Brush SectorBrush = Frozen(Color.FromArgb(0xF2, 0x27, 0x2A, 0x31));
-        private static readonly Brush ToolBrush = Frozen(Color.FromArgb(0xF2, 0x22, 0x31, 0x36));
-        private static readonly Brush HoverBrush = Frozen(Color.FromRgb(0xFF, 0x7A, 0x1A));
-        private static readonly Brush DisabledHoverBrush = Frozen(Color.FromRgb(0x4A, 0x4D, 0x55));
-        private static readonly Brush StrokeBrush = Frozen(Color.FromArgb(0x30, 0xFF, 0xFF, 0xFF));
-        private static readonly Brush CenterBrush = Frozen(Color.FromRgb(0x14, 0x15, 0x19));
-        private static readonly Brush Accent = Frozen(Color.FromRgb(0xFF, 0x8C, 0x33));
-        private static readonly Brush TextBrush = Frozen(Colors.White);
-        private static readonly Brush SubBrush = Frozen(Color.FromArgb(0xB0, 0xFF, 0xFF, 0xFF));
-        private static readonly Brush ToolTextBrush = Frozen(Color.FromRgb(0x7F, 0xD6, 0xC8));
+        // Kumkat paleti (bkz. Theme.cs)
+        private static readonly Brush PeelBrush = Theme.Radial(C, C, Ro + Peel, Theme.Orange, Theme.Aperol, 0.90);
+        private static readonly Brush ZestBrush = Theme.Solid(Theme.OrangeLight, 0xB0);
+        private static readonly Brush PithBrush = Theme.Radial(C, C, Ro + 2, Theme.Pith, Theme.Cloud, 0.55);
+        private static readonly Brush SegmentBrush = Theme.Radial(C, C, Ro, Theme.MimosaLight, Theme.Mimosa, 0.35);
+        private static readonly Brush HoverBrush = Theme.Radial(C, C, Ro, Theme.OrangeLight, Theme.Orange, 0.35);
+        private static readonly Brush DisabledBrush = Theme.Radial(C, C, Ro, Theme.AzulLight, Theme.Azul, 0.35);
+        private static readonly Brush DisabledHoverBrush = Theme.Solid(Theme.AzulDeep);
+        private static readonly Brush CoreBrush = Theme.Radial(C, C, Ri, Colors.White, Theme.Cloud, 0.25);
+        private static readonly Brush TitleBrush = Theme.Solid(Theme.Aperol);
+        private static readonly Brush CenterSubBrush = Theme.Solid(Theme.AzulDeep);
+        private static readonly Brush LabelBrush = Theme.Solid(Theme.Rind);
+        private static readonly Brush LabelSubBrush = Theme.Solid(Theme.RindSoft);
+        private static readonly Brush LabelDisabledBrush = Theme.Solid(Theme.Ink, 0xB0);
+        private static readonly Brush LabelHoverBrush = Theme.Solid(Colors.White);
+        private static readonly Brush LabelHoverSubBrush = Theme.Solid(Color.FromRgb(0xFF, 0xEB, 0xD6));
+        private static readonly Brush PillBrush = Theme.Solid(Theme.Ink, 0xEE);
+        private static readonly Brush PillTextBrush = Theme.Solid(Theme.Cloud);
         private static readonly Brush HitBrush = Frozen(Color.FromArgb(1, 0, 0, 0)); // görünmez ama fare/sürükleme yakalar
 
         private readonly bool _dropMode;
@@ -80,7 +89,6 @@ namespace Kumkat.UI
         private readonly TextBlock _centerSub;
 
         private static readonly List<MenuEntry> NoEntries = new List<MenuEntry>();
-        private static readonly Brush PillBrush = Frozen(Color.FromArgb(0xE6, 0x14, 0x15, 0x19));
 
         private MenuModel? _model;
         private int _page;
@@ -120,7 +128,7 @@ namespace Kumkat.UI
 
             _centerTitle = new TextBlock
             {
-                Foreground = TextBrush,
+                Foreground = TitleBrush,
                 FontSize = 19,
                 FontWeight = FontWeights.Bold,
                 TextAlignment = TextAlignment.Center,
@@ -128,7 +136,7 @@ namespace Kumkat.UI
             };
             _centerSub = new TextBlock
             {
-                Foreground = SubBrush,
+                Foreground = CenterSubBrush,
                 FontSize = 10.5,
                 TextAlignment = TextAlignment.Center,
                 TextWrapping = TextWrapping.Wrap,
@@ -200,39 +208,61 @@ namespace Kumkat.UI
             _labels.Clear();
             _canvas.Children.Clear();
 
-            var shadowHost = new Ellipse
+            // kabuk: Aperol→Orange, gölgeli
+            var peel = new Ellipse
             {
-                Width = Ro * 2,
-                Height = Ro * 2,
-                Fill = RingBrush,
-                Effect = new DropShadowEffect { BlurRadius = 28, ShadowDepth = 4, Opacity = 0.45, Color = Colors.Black },
+                Width = (Ro + Peel) * 2,
+                Height = (Ro + Peel) * 2,
+                Fill = PeelBrush,
+                Effect = new DropShadowEffect { BlurRadius = 16, ShadowDepth = 3, Opacity = 0.35, Color = Color.FromRgb(0x5A, 0x24, 0x0E) },
                 IsHitTestVisible = false,
             };
-            Canvas.SetLeft(shadowHost, C - Ro);
-            Canvas.SetTop(shadowHost, C - Ro);
-            _canvas.Children.Add(shadowHost);
+            Canvas.SetLeft(peel, C - Ro - Peel);
+            Canvas.SetTop(peel, C - Ro - Peel);
+            _canvas.Children.Add(peel);
+
+            // kabuktaki yağ gözenekleri (zest): sabit desen, her açılışta aynı
+            for (int k = 0; k < 64; k++)
+            {
+                double ang = k * 360.0 / 64 + (k % 3) * 2.1;
+                double rr = Ro + Peel * (k % 2 == 0 ? 0.45 : 0.72);
+                double size = k % 4 == 0 ? 2.4 : 1.6;
+                Point zp = Polar(rr, ang);
+                var dot = new Ellipse { Width = size, Height = size, Fill = ZestBrush, IsHitTestVisible = false };
+                Canvas.SetLeft(dot, zp.X - size / 2);
+                Canvas.SetTop(dot, zp.Y - size / 2);
+                _canvas.Children.Add(dot);
+            }
+
+            // ak kısım (beyaz zar)
+            var pith = new Ellipse { Width = (Ro + 2) * 2, Height = (Ro + 2) * 2, Fill = PithBrush, IsHitTestVisible = false };
+            Canvas.SetLeft(pith, C - Ro - 2);
+            Canvas.SetTop(pith, C - Ro - 2);
+            _canvas.Children.Add(pith);
 
             _ring = new Canvas { Width = Dim, Height = Dim, IsHitTestVisible = false, RenderTransform = new RotateTransform(0, C, C) };
             _canvas.Children.Add(_ring);
 
             var entries = Cur;
             int n = entries.Count;
-            if (n > 0)
+            if (n == 0)
+            {
+                // henüz dosya yok (bırakma kipi): süs dilimleri
+                for (int i = 0; i < 8; i++)
+                {
+                    var deco = MakeSegment(i * 45.0, 45.0, SegmentBrush);
+                    deco.Opacity = 0.55;
+                    _ring.Children.Add(deco);
+                }
+            }
+            else
             {
                 double step = 360.0 / n;
                 for (int i = 0; i < n; i++)
                 {
                     var entry = entries[i];
                     double mid = i * step;
-                    var path = new ShapePath
-                    {
-                        Data = SectorGeometry(mid - step / 2 + GapDeg / 2, mid + step / 2 - GapDeg / 2, Ri + 3, Ro - 3),
-                        Fill = entry.IsTool ? ToolBrush : SectorBrush,
-                        Stroke = StrokeBrush,
-                        StrokeThickness = 1,
-                        IsHitTestVisible = false,
-                        Opacity = entry.Enabled ? 1.0 : 0.55,
-                    };
+                    var path = MakeSegment(mid, step, entry.Enabled ? SegmentBrush : DisabledBrush);
                     _ring.Children.Add(path);
                     _sectors.Add(path);
 
@@ -240,41 +270,42 @@ namespace Kumkat.UI
                     {
                         Text = entry.Label,
                         FontSize = n > 10 ? 13 : 15,
-                        FontWeight = FontWeights.SemiBold,
-                        Foreground = entry.Enabled ? TextBrush : SubBrush,
+                        FontWeight = FontWeights.Bold,
+                        Foreground = entry.Enabled ? LabelBrush : LabelDisabledBrush,
                         TextAlignment = TextAlignment.Center,
                     };
                     var subLabel = new TextBlock
                     {
                         Text = entry.Sub ?? (entry.IsTool ? "araç" : ""),
                         FontSize = 10,
-                        Foreground = entry.IsTool ? ToolTextBrush : SubBrush,
+                        Foreground = entry.Enabled ? LabelSubBrush : LabelDisabledBrush,
                         TextAlignment = TextAlignment.Center,
                         Visibility = string.IsNullOrEmpty(entry.Sub) && !entry.IsTool ? Visibility.Collapsed : Visibility.Visible,
                     };
-                    var stack = new StackPanel { Width = 86, IsHitTestVisible = false, Opacity = entry.Enabled ? 1.0 : 0.5 };
+                    var stack = new StackPanel { Width = 84, IsHitTestVisible = false };
                     stack.Children.Add(label);
                     stack.Children.Add(subLabel);
                     stack.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-                    Point p = Polar((Ri + Ro) / 2 + 4, mid);
-                    Canvas.SetLeft(stack, p.X - 43);
+                    Point p = Polar((Ri + Ro) / 2 + 6, mid);
+                    Canvas.SetLeft(stack, p.X - 42);
                     Canvas.SetTop(stack, p.Y - stack.DesiredSize.Height / 2);
                     _ring.Children.Add(stack);
                     _labels.Add(new[] { label, subLabel });
                 }
             }
 
+            // çekirdek (meyvenin ortası)
             var center = new Ellipse
             {
-                Width = (Ri - 4) * 2,
-                Height = (Ri - 4) * 2,
-                Fill = CenterBrush,
-                Stroke = Accent,
-                StrokeThickness = 2,
+                Width = (Ri - 2) * 2,
+                Height = (Ri - 2) * 2,
+                Fill = CoreBrush,
+                Stroke = Theme.Solid(Theme.Mimosa, 0x90),
+                StrokeThickness = 1.5,
                 IsHitTestVisible = false,
             };
-            Canvas.SetLeft(center, C - Ri + 4);
-            Canvas.SetTop(center, C - Ri + 4);
+            Canvas.SetLeft(center, C - Ri + 2);
+            Canvas.SetTop(center, C - Ri + 2);
             _canvas.Children.Add(center);
 
             // metin blokları önceki kurulumdaki panelden ayrılmalı (WPF'de bir öğenin tek ebeveyni olur)
@@ -296,15 +327,15 @@ namespace Kumkat.UI
             var text = new TextBlock
             {
                 Text = $"{_model.Pages[_page].Title}   {dots}",
-                Foreground = TextBrush,
+                Foreground = PillTextBrush,
                 FontSize = 11,
                 FontWeight = FontWeights.SemiBold,
             };
             var pill = new Border
             {
                 Background = PillBrush,
-                BorderBrush = Accent,
-                BorderThickness = new Thickness(1),
+                BorderBrush = Theme.Solid(Theme.Mimosa),
+                BorderThickness = new Thickness(1.5),
                 CornerRadius = new CornerRadius(10),
                 Padding = new Thickness(10, 2, 10, 3),
                 Child = text,
@@ -373,17 +404,47 @@ namespace Kumkat.UI
             return new Point(C + r * Math.Cos(rad), C + r * Math.Sin(rad));
         }
 
-        private static Geometry SectorGeometry(double a0, double a1, double ri, double ro)
+        /// <summary>
+        /// Meyve dilimi: kenarları dilim ekseninden <paramref name="d"/> kadar kaydırılmış paralel doğrular
+        /// (böylece aradaki zar her yerde aynı kalınlıkta), iç ve dış kenarı yay.
+        /// </summary>
+        private static Geometry SegmentGeometry(double midDeg, double stepDeg, double ri, double ro, double d)
         {
-            bool large = (a1 - a0) > 180;
-            var fig = new PathFigure { StartPoint = Polar(ro, a0), IsClosed = true, IsFilled = true };
-            fig.Segments.Add(new ArcSegment(Polar(ro, a1), new Size(ro, ro), 0, large, SweepDirection.Clockwise, true));
-            fig.Segments.Add(new LineSegment(Polar(ri, a1), true));
-            fig.Segments.Add(new ArcSegment(Polar(ri, a0), new Size(ri, ri), 0, large, SweepDirection.Counterclockwise, true));
+            double a0 = midDeg - stepDeg / 2, a1 = midDeg + stepDeg / 2;
+            double Off(double r) => Math.Asin(Math.Min(1.0, d / r)) * 180.0 / Math.PI;
+            double o0 = a0 + Off(ro), o1 = a1 - Off(ro), i0 = a0 + Off(ri), i1 = a1 - Off(ri);
+            if (i1 <= i0) { double m = (a0 + a1) / 2; i0 = m - 0.5; i1 = m + 0.5; } // çok dar dilim: içte sivri bitsin
+
+            var fig = new PathFigure { StartPoint = Polar(ro, o0), IsClosed = true, IsFilled = true };
+            fig.Segments.Add(new ArcSegment(Polar(ro, o1), new Size(ro, ro), 0, (o1 - o0) > 180, SweepDirection.Clockwise, true));
+            fig.Segments.Add(new LineSegment(Polar(ri, i1), true));
+            fig.Segments.Add(new ArcSegment(Polar(ri, i0), new Size(ri, ri), 0, (i1 - i0) > 180, SweepDirection.Counterclockwise, true));
             var g = new PathGeometry();
             g.Figures.Add(fig);
             g.Freeze();
             return g;
+        }
+
+        private static ShapePath MakeSegment(double midDeg, double stepDeg, Brush brush)
+        {
+            // Aynı fırçayla kalın, yuvarlak birleşimli çizgi: şekil yarım çizgi kadar büyür ve köşeleri yuvarlanır.
+            // Bu yüzden geometri o kadar içeriden çizilir.
+            double half = Round / 2;
+            return new ShapePath
+            {
+                Data = SegmentGeometry(midDeg, stepDeg, Ri + 4 + half, Ro - 4 - half, Membrane / 2 + half),
+                Fill = brush,
+                Stroke = brush,
+                StrokeThickness = Round,
+                StrokeLineJoin = PenLineJoin.Round,
+                IsHitTestVisible = false,
+            };
+        }
+
+        private static void Paint(ShapePath segment, Brush brush)
+        {
+            segment.Fill = brush;
+            segment.Stroke = brush;
         }
 
         // ------------------------------------------------------- konum / gösterme
@@ -469,16 +530,18 @@ namespace Kumkat.UI
             if (_hover >= 0 && _hover < _sectors.Count)
             {
                 var old = entries[_hover];
-                _sectors[_hover].Fill = old.IsTool ? ToolBrush : SectorBrush;
-                _labels[_hover][1].Foreground = old.IsTool ? ToolTextBrush : SubBrush;
+                Paint(_sectors[_hover], old.Enabled ? SegmentBrush : DisabledBrush);
+                _labels[_hover][0].Foreground = old.Enabled ? LabelBrush : LabelDisabledBrush;
+                _labels[_hover][1].Foreground = old.Enabled ? LabelSubBrush : LabelDisabledBrush;
             }
 
             _hover = index;
             if (_hover >= 0 && _hover < _sectors.Count)
             {
                 var e = entries[_hover];
-                _sectors[_hover].Fill = e.Enabled ? HoverBrush : DisabledHoverBrush;
-                if (e.Enabled) _labels[_hover][1].Foreground = TextBrush;
+                Paint(_sectors[_hover], e.Enabled ? HoverBrush : DisabledHoverBrush);
+                _labels[_hover][0].Foreground = LabelHoverBrush;
+                _labels[_hover][1].Foreground = e.Enabled ? LabelHoverSubBrush : LabelHoverBrush;
                 ShowCenter(e.Enabled ? "→ " + e.Label : e.Label, e.Enabled ? (e.Sub ?? _model!.Sub) : (e.DisabledReason ?? "Kullanılamıyor"));
             }
             else if (_model != null)
