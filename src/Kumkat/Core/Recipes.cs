@@ -35,6 +35,8 @@ namespace Kumkat.Core
         public string? Via { get; set; }
         /// <summary>Hangi halka sayfasında görünür (0 = ilk).</summary>
         public int Page { get; set; }
+        /// <summary>"crop": dönüştürmeden önce kullanıcıdan alan seçmesi istenir ({fx} {fy} {fw} {fh}).</summary>
+        public string? Interactive { get; set; }
     }
 
     /// <summary>Radyal menüdeki bir dilim.</summary>

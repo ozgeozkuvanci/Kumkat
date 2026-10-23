@@ -44,6 +44,7 @@ for g in RECIPES["groups"]:
             out = outdir / f"{src.stem}.{ext}"
             args = [x.replace("{in}", str(src)).replace("{out}", str(out))
                      .replace("{outdir}", str(outdir)).replace("{lo_profile}", lo_profile)
+                     .replace("{fx}", "0.1").replace("{fy}", "0.2").replace("{fw}", "0.5").replace("{fh}", "0.6")
                     for x in a["args"]]
             exe = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-nostdin", "-y"] if a["engine"] == "ffmpeg" else ["soffice"]
             r = subprocess.run(exe + args, capture_output=True, text=True, timeout=300)

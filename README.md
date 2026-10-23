@@ -19,7 +19,7 @@ Hiçbir dosya internete gitmez. Uygulama sistem tepsisinde yaşar.
 | Sayfa | Görsel | Video |
 |---|---|---|
 | Dönüştür | PNG, JPG, WebP, AVIF, PDF, DOCX, ICO, BMP, TIFF | MP4, WebM, MOV, MKV, GIF, MP3 |
-| Kırp · Döndür | 1:1, 16:9, 9:16, 4:3 (ortadan kırpar), sağa/sola döndür, ayna, siyah-beyaz | aynısı |
+| Kırp · Döndür | **Serbest kırp** (önizlemede fareyle alan seç), 1:1, 16:9, 9:16, 4:3 (ortadan), sağa/sola döndür, ayna, siyah-beyaz | aynısı (önizleme ilk kareden) |
 | Boyut · Temizle / Hız | %50, %25, uzun kenar 1920 / 1080, JPG sıkıştır, meta veriyi temizle | sıkıştır, 720p, 2× hız, sesi sil, kapak karesi |
 
 Bitince bir bildirim çıkar; tıklarsan Explorer yeni dosyayı seçili halde açar. Aynı adda dosya varsa `ad (1).webp` gibi yeni bir ad verilir, orijinale asla dokunulmaz.

@@ -26,7 +26,8 @@ namespace Kumkat.Core
         }
 
         /// <returns>Oluşan dosyanın (veya çok sayfalı çıktılarda klasörün) tam yolu.</returns>
-        public async Task<string> ConvertAsync(string input, RecipeGroup group, RecipeAction action, CancellationToken ct)
+        public async Task<string> ConvertAsync(string input, RecipeGroup group, RecipeAction action, CancellationToken ct,
+            IReadOnlyDictionary<string, string>? vars = null)
         {
             input = Path.GetFullPath(input);
             if (!File.Exists(input)) throw new FileNotFoundException("Dosya bulunamadı.", input);
@@ -43,7 +44,7 @@ namespace Kumkat.Core
                 switch (action.Engine)
                 {
                     case "ffmpeg":
-                        produced = await FfmpegAsync(input, inExt, outExt, action.Args, tmp, ct).ConfigureAwait(false);
+                        produced = await FfmpegAsync(input, inExt, outExt, action.Args, tmp, ct, vars).ConfigureAwait(false);
                         break;
                     case "soffice":
                         produced = await SofficeAsync(input, outExt, action.Args, tmp, ct).ConfigureAwait(false);
@@ -79,13 +80,20 @@ namespace Kumkat.Core
             }
         }
 
-        private static List<string> Substitute(IEnumerable<string> args, string input, string output, string outdir)
+        private static List<string> Substitute(IEnumerable<string> args, string input, string output, string outdir,
+            IReadOnlyDictionary<string, string>? vars = null)
         {
             string loProfile = new Uri(Path.Combine(AppPaths.TempRoot, "lo_profile") + Path.DirectorySeparatorChar).AbsoluteUri;
             return args.Select(a => a.Replace("{in}", input)
                                      .Replace("{out}", output)
                                      .Replace("{outdir}", outdir)
                                      .Replace("{lo_profile}", loProfile))
+                       .Select(a =>
+                       {
+                           if (vars == null) return a;
+                           foreach (var kv in vars) a = a.Replace("{" + kv.Key + "}", kv.Value);
+                           return a;
+                       })
                        .ToList();
         }
 
@@ -98,7 +106,8 @@ namespace Kumkat.Core
 
         // ----------------------------------------------------------------- FFmpeg
 
-        private async Task<string> FfmpegAsync(string input, string inExt, string outExt, List<string>? args, string tmp, CancellationToken ct)
+        private async Task<string> FfmpegAsync(string input, string inExt, string outExt, List<string>? args, string tmp, CancellationToken ct,
+            IReadOnlyDictionary<string, string>? vars = null)
         {
             string ffmpeg = _tools.Ffmpeg ?? throw new InvalidOperationException("FFmpeg bulunamadı.");
             if (args == null || args.Count == 0) throw new InvalidOperationException("Tarifte ffmpeg argümanı yok.");
@@ -119,7 +128,7 @@ namespace Kumkat.Core
             }
 
             string output = Path.Combine(tmp, "out." + outExt);
-            var full = FfmpegPrefix.Concat(Substitute(args, source, output, tmp));
+            var full = FfmpegPrefix.Concat(Substitute(args, source, output, tmp, vars));
             var r = await ProcessRunner.RunAsync(ffmpeg, full, LongTimeout, ct).ConfigureAwait(false);
             EnsureProduced(output, r, "FFmpeg");
             return output;
@@ -133,6 +142,34 @@ namespace Kumkat.Core
             var r = await ProcessRunner.RunAsync(ffmpeg, args, ShortTimeout, ct).ConfigureAwait(false);
             EnsureProduced(output, r, "FFmpeg");
             return output;
+        }
+
+        // ------------------------------------------------------------- önizleme
+
+        /// <summary>Serbest kırpma penceresi için görüntü: görselin kendisi, videonun ilk karesi.</summary>
+        public async Task<System.Windows.Media.Imaging.BitmapSource> LoadPreviewAsync(string input, RecipeGroup group, CancellationToken ct)
+        {
+            string tmp = AppPaths.NewTempDir();
+            try
+            {
+                if (group.Id != "video")
+                {
+                    try
+                    {
+                        return await StaRunner.Run(() => ImageEngine.Load(input)).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Write($"Önizleme WIC ile açılamadı ({ex.Message}), FFmpeg denenecek.");
+                    }
+                }
+                string png = await FfmpegDecodeToPngAsync(input, tmp, ct).ConfigureAwait(false);
+                return await StaRunner.Run(() => ImageEngine.Load(png)).ConfigureAwait(false);
+            }
+            finally
+            {
+                AppPaths.TryDeleteDir(tmp);
+            }
         }
 
         // ------------------------------------------------------------ LibreOffice

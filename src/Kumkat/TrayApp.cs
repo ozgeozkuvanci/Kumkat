@@ -381,7 +381,7 @@ namespace Kumkat
             menu.Finished += (entry, m) =>
             {
                 if (ReferenceEquals(_openMenu, menu)) _openMenu = null;
-                if (entry != null && m != null) RunJob(m.Files, entry);
+                if (entry != null && m != null) Start(m.Files, entry);
             };
             _openMenu = menu;
             menu.ShowAtCursor();
@@ -396,7 +396,7 @@ namespace Kumkat
             overlay.Finished += (entry, m) =>
             {
                 if (ReferenceEquals(_dropOverlay, overlay)) _dropOverlay = null;
-                if (entry != null && m != null) RunJob(m.Files, entry);
+                if (entry != null && m != null) Start(m.Files, entry);
             };
             _dropOverlay = overlay;
             overlay.ShowAt(pt);
@@ -418,7 +418,45 @@ namespace Kumkat
 
         // ------------------------------------------------------------ iş kuyruğu
 
-        private async void RunJob(IReadOnlyList<string> files, MenuEntry entry)
+        private void Start(IReadOnlyList<string> files, MenuEntry entry)
+        {
+            if (entry.Action.Interactive == "crop") StartCrop(files, entry);
+            else RunJob(files, entry);
+        }
+
+        /// <summary>Serbest kırpma: önizlemede alan seçtir, sonra seçilen oranlarla tarifi çalıştır.</summary>
+        private async void StartCrop(IReadOnlyList<string> files, MenuEntry entry)
+        {
+            try
+            {
+                UpdateTrayText("önizleme hazırlanıyor…");
+                var preview = await _converter.LoadPreviewAsync(files[0], entry.Group, _shutdown.Token);
+                UpdateTrayText();
+
+                var win = new CropWindow(preview, Path.GetFileName(files[0]), files.Count);
+                win.ShowDialog();
+                if (win.Result is System.Windows.Rect r)
+                {
+                    var inv = System.Globalization.CultureInfo.InvariantCulture;
+                    var vars = new Dictionary<string, string>
+                    {
+                        ["fx"] = r.X.ToString("0.######", inv),
+                        ["fy"] = r.Y.ToString("0.######", inv),
+                        ["fw"] = r.Width.ToString("0.######", inv),
+                        ["fh"] = r.Height.ToString("0.######", inv),
+                    };
+                    RunJob(files, entry, vars);
+                }
+            }
+            catch (Exception ex)
+            {
+                UpdateTrayText();
+                Log.Error("crop", ex);
+                Notify("Kırpma açılamadı", ex.Message, Forms.ToolTipIcon.Error);
+            }
+        }
+
+        private async void RunJob(IReadOnlyList<string> files, MenuEntry entry, IReadOnlyDictionary<string, string>? vars = null)
         {
             Interlocked.Add(ref _queued, files.Count);
             UpdateTrayText();
@@ -435,7 +473,7 @@ namespace Kumkat
                     UpdateTrayText($"{entry.Label} {i + 1}/{files.Count}: {Path.GetFileName(file)}");
                     try
                     {
-                        string output = await Task.Run(() => _converter.ConvertAsync(file, entry.Group, entry.Action, _shutdown.Token));
+                        string output = await Task.Run(() => _converter.ConvertAsync(file, entry.Group, entry.Action, _shutdown.Token, vars));
                         outputs.Add(output);
                         Log.Write($"OK  {file} -> {output}");
                     }
