@@ -80,6 +80,13 @@ namespace Kumkat
             _dragWatcher = new ShiftDragWatcher(_dispatcher);
             _dragWatcher.ShiftDragStarted += OnShiftDrag;
             _dragWatcher.MouseReleased += OnDragReleased;
+            _dragWatcher.WheelDuringDrag = delta =>
+            {
+                var overlay = _dropOverlay;
+                if (overlay == null) return false;
+                _ = _dispatcher.InvokeAsync(() => overlay.Wheel(delta));
+                return true;
+            };
             if (_settings.ShiftDragEnabled) _dragWatcher.Start();
 
             _batchTimer = new DispatcherTimer(DispatcherPriority.Normal, _dispatcher) { Interval = TimeSpan.FromMilliseconds(350) };
@@ -341,10 +348,21 @@ namespace Kumkat
             var entries = _book.EntriesFor(group, inExt, _tools);
             if (entries.Count == 0) return null;
 
+            // tarifleri halka sayfalarına böl; boş sayfaları atla
+            var pages = new List<MenuPage>();
+            int pageCount = Math.Max(1, entries.Max(e => e.Page) + 1);
+            for (int i = 0; i < pageCount; i++)
+            {
+                var onPage = entries.Where(e => e.Page == i).ToList();
+                if (onPage.Count == 0) continue;
+                string pageTitle = group.Pages != null && i < group.Pages.Count ? group.Pages[i] : (i == 0 ? "Dönüştür" : $"Sayfa {i + 1}");
+                pages.Add(new MenuPage(pageTitle, onPage));
+            }
+
             string sub = RadialMenuWindow.DescribeFiles(same);
             int skipped = files.Count - same.Count;
             if (skipped > 0) sub += $" (+{skipped} farklı tür atlandı)";
-            return new MenuModel(same, entries, RadialMenuWindow.TitleFor(same), sub);
+            return new MenuModel(same, pages, RadialMenuWindow.TitleFor(same), sub);
         }
 
         public void ShowMenuFor(IReadOnlyList<string> files)

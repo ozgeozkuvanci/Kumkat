@@ -18,18 +18,31 @@ namespace Kumkat.UI
     /// <summary>Menüde gösterilecek dosyalar ve dilimler.</summary>
     internal sealed class MenuModel
     {
-        public MenuModel(IReadOnlyList<string> files, List<MenuEntry> entries, string title, string sub)
+        public MenuModel(IReadOnlyList<string> files, List<MenuPage> pages, string title, string sub)
         {
             Files = files;
-            Entries = entries;
+            Pages = pages;
             Title = title;
             Sub = sub;
         }
 
         public IReadOnlyList<string> Files { get; }
-        public List<MenuEntry> Entries { get; }
+        public List<MenuPage> Pages { get; }
         public string Title { get; }
         public string Sub { get; }
+    }
+
+    /// <summary>Halkanın bir sayfası (fare tekerleğiyle geçilir).</summary>
+    internal sealed class MenuPage
+    {
+        public MenuPage(string title, List<MenuEntry> entries)
+        {
+            Title = title;
+            Entries = entries;
+        }
+
+        public string Title { get; }
+        public List<MenuEntry> Entries { get; }
     }
 
     /// <summary>
@@ -66,7 +79,14 @@ namespace Kumkat.UI
         private readonly TextBlock _centerTitle;
         private readonly TextBlock _centerSub;
 
+        private static readonly List<MenuEntry> NoEntries = new List<MenuEntry>();
+        private static readonly Brush PillBrush = Frozen(Color.FromArgb(0xE6, 0x14, 0x15, 0x19));
+
         private MenuModel? _model;
+        private int _page;
+        private int _wheelAccum;
+        private DateTime _lastPageTurn = DateTime.MinValue;
+        private Canvas? _ring; // dilimler + etiketler (sayfa değişiminde döndürülerek canlandırılır)
         private int _hover = -1;
         private bool _finished;
         private bool _downSeen; // bu pencerede başlamış bir tıklama mı?
@@ -132,6 +152,11 @@ namespace Kumkat.UI
             MouseLeftButtonUp += OnClick;
             MouseRightButtonUp += (_, __) => Complete(null);
             KeyDown += OnKey;
+            MouseWheel += (_, e) =>
+            {
+                Wheel(e.Delta);
+                e.Handled = true;
+            };
             Deactivated += (_, __) => { if (!_dropMode) Complete(null); };
             Loaded += (_, __) => AnimateIn();
 
@@ -157,9 +182,19 @@ namespace Kumkat.UI
 
         public void SetModel(MenuModel? model) => SetModel(model, model?.Title ?? "", model?.Sub ?? "");
 
+        /// <summary>Şu anki sayfanın dilimleri.</summary>
+        private List<MenuEntry> Cur =>
+            _model == null || _model.Pages.Count == 0 ? NoEntries : _model.Pages[Math.Min(_page, _model.Pages.Count - 1)].Entries;
+
         private void SetModel(MenuModel? model, string title, string sub)
         {
             _model = model;
+            _page = 0;
+            Rebuild(title, sub);
+        }
+
+        private void Rebuild(string title, string sub)
+        {
             _hover = -1;
             _sectors.Clear();
             _labels.Clear();
@@ -177,7 +212,10 @@ namespace Kumkat.UI
             Canvas.SetTop(shadowHost, C - Ro);
             _canvas.Children.Add(shadowHost);
 
-            var entries = model?.Entries ?? new List<MenuEntry>();
+            _ring = new Canvas { Width = Dim, Height = Dim, IsHitTestVisible = false, RenderTransform = new RotateTransform(0, C, C) };
+            _canvas.Children.Add(_ring);
+
+            var entries = Cur;
             int n = entries.Count;
             if (n > 0)
             {
@@ -195,7 +233,7 @@ namespace Kumkat.UI
                         IsHitTestVisible = false,
                         Opacity = entry.Enabled ? 1.0 : 0.55,
                     };
-                    _canvas.Children.Add(path);
+                    _ring.Children.Add(path);
                     _sectors.Add(path);
 
                     var label = new TextBlock
@@ -221,7 +259,7 @@ namespace Kumkat.UI
                     Point p = Polar((Ri + Ro) / 2 + 4, mid);
                     Canvas.SetLeft(stack, p.X - 43);
                     Canvas.SetTop(stack, p.Y - stack.DesiredSize.Height / 2);
-                    _canvas.Children.Add(stack);
+                    _ring.Children.Add(stack);
                     _labels.Add(new[] { label, subLabel });
                 }
             }
@@ -247,6 +285,74 @@ namespace Kumkat.UI
             centerStack.Children.Add(_centerSub);
             _canvas.Children.Add(centerStack);
             ShowCenter(title, sub);
+            AddPagePill();
+        }
+
+        /// <summary>Halkanın altında sayfa göstergesi: "Kırp · Döndür  ○ ● ○".</summary>
+        private void AddPagePill()
+        {
+            if (_model == null || _model.Pages.Count <= 1) return;
+            string dots = string.Join(" ", Enumerable.Range(0, _model.Pages.Count).Select(i => i == _page ? "●" : "○"));
+            var text = new TextBlock
+            {
+                Text = $"{_model.Pages[_page].Title}   {dots}",
+                Foreground = TextBrush,
+                FontSize = 11,
+                FontWeight = FontWeights.SemiBold,
+            };
+            var pill = new Border
+            {
+                Background = PillBrush,
+                BorderBrush = Accent,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(10),
+                Padding = new Thickness(10, 2, 10, 3),
+                Child = text,
+                IsHitTestVisible = false,
+                ToolTip = null,
+            };
+            pill.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            Canvas.SetLeft(pill, C - pill.DesiredSize.Width / 2);
+            Canvas.SetTop(pill, Math.Min(Dim - pill.DesiredSize.Height - 1, C + Ro - pill.DesiredSize.Height / 2));
+            _canvas.Children.Add(pill);
+        }
+
+        // ------------------------------------------------------- sayfa değiştirme
+
+        /// <summary>Fare tekerleği: dokunmatik yüzeylerin küçük adımlarını biriktirir, bir sayfa = 120 birim.</summary>
+        public void Wheel(int delta)
+        {
+            if (_model == null || _model.Pages.Count <= 1) return;
+            _wheelAccum += delta;
+            if (Math.Abs(_wheelAccum) < 120) return;
+            int dir = _wheelAccum < 0 ? +1 : -1; // aşağı = sonraki sayfa
+            _wheelAccum = 0;
+            if ((DateTime.Now - _lastPageTurn).TotalMilliseconds < 140) return; // hızlı tekerlekte sayfa atlamasın
+            ChangePage(dir);
+        }
+
+        public void ChangePage(int dir)
+        {
+            if (_model == null || _model.Pages.Count <= 1 || _finished) return;
+            int n = _model.Pages.Count;
+            _page = ((_page + dir) % n + n) % n;
+            _lastPageTurn = DateTime.Now;
+
+            Point? mouse = null;
+            try { mouse = Mouse.GetPosition(_canvas); } catch { }
+            Rebuild(_model.Title, _model.Sub);
+            if (mouse.HasValue) UpdateHover(mouse.Value);
+
+            // dilimler dönerek gelsin
+            if (_ring?.RenderTransform is RotateTransform rt)
+            {
+                var anim = new DoubleAnimation(dir * -28, 0, TimeSpan.FromMilliseconds(170))
+                {
+                    EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
+                };
+                rt.BeginAnimation(RotateTransform.AngleProperty, anim);
+                _ring.BeginAnimation(OpacityProperty, new DoubleAnimation(0.2, 1, TimeSpan.FromMilliseconds(170)));
+            }
         }
 
         private void ShowCenter(string title, string sub)
@@ -357,8 +463,8 @@ namespace Kumkat.UI
         private void SetHover(int index)
         {
             if (index == _hover) return;
-            var entries = _model?.Entries;
-            if (entries == null) return;
+            if (_model == null) return;
+            var entries = Cur;
 
             if (_hover >= 0 && _hover < _sectors.Count)
             {
@@ -383,8 +489,8 @@ namespace Kumkat.UI
 
         private void Step(int delta)
         {
-            var entries = _model?.Entries;
-            if (entries == null || entries.Count == 0) return;
+            var entries = Cur;
+            if (entries.Count == 0) return;
             int n = entries.Count;
             int i = _hover < 0 ? (delta > 0 ? -1 : 0) : _hover;
             for (int k = 0; k < n; k++)
@@ -398,6 +504,12 @@ namespace Kumkat.UI
         {
             switch (e.Key)
             {
+                case Key.PageDown:
+                    ChangePage(+1);
+                    break;
+                case Key.PageUp:
+                    ChangePage(-1);
+                    break;
                 case Key.Escape:
                     Complete(null);
                     break;
@@ -417,7 +529,7 @@ namespace Kumkat.UI
                 default:
                     int digit = e.Key >= Key.D1 && e.Key <= Key.D9 ? e.Key - Key.D1
                               : e.Key >= Key.NumPad1 && e.Key <= Key.NumPad9 ? e.Key - Key.NumPad1 : -1;
-                    if (digit >= 0 && _model != null && digit < _model.Entries.Count)
+                    if (digit >= 0 && _model != null && digit < Cur.Count)
                     {
                         SetHover(digit);
                         ChooseHovered();
@@ -445,8 +557,8 @@ namespace Kumkat.UI
 
         private void ChooseHovered()
         {
-            if (_model == null || _hover < 0 || _hover >= _model.Entries.Count) return;
-            var entry = _model.Entries[_hover];
+            if (_model == null || _hover < 0 || _hover >= Cur.Count) return;
+            var entry = Cur[_hover];
             if (!entry.Enabled)
             {
                 Native.MessageBeep(0);
@@ -490,7 +602,7 @@ namespace Kumkat.UI
         private void OnDragOver(object sender, DragEventArgs e)
         {
             UpdateHover(e.GetPosition(_canvas));
-            bool ok = _model != null && _hover >= 0 && _model.Entries[_hover].Enabled;
+            bool ok = _model != null && _hover >= 0 && _hover < Cur.Count && Cur[_hover].Enabled;
             e.Effects = SafeEffect(e, ok);
             e.Handled = true;
         }
@@ -498,7 +610,7 @@ namespace Kumkat.UI
         private void OnDrop(object sender, DragEventArgs e)
         {
             UpdateHover(e.GetPosition(_canvas));
-            bool ok = _model != null && _hover >= 0 && _model.Entries[_hover].Enabled;
+            bool ok = _model != null && _hover >= 0 && _hover < Cur.Count && Cur[_hover].Enabled;
             e.Effects = SafeEffect(e, ok);
             e.Handled = true;
             // Explorer'ın sürükle-bırak döngüsünü bekletmemek için seçimi bir sonraki turda işle

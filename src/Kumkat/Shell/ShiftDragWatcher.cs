@@ -29,6 +29,13 @@ namespace Kumkat.Shell
         public event Action<Native.POINT>? ShiftDragStarted;
         public event Action? MouseReleased;
 
+        /// <summary>
+        /// Shift+sürükleme sürerken tekerlek döndürülürse çağrılır (delta: +120 yukarı, -120 aşağı).
+        /// true dönerse olay tüketilir: Explorer kaymaz, yalnızca halka sayfa değiştirir.
+        /// Kanca içinde çağrılır; hızlı olmalı.
+        /// </summary>
+        public Func<int, bool>? WheelDuringDrag { get; set; }
+
         public ShiftDragWatcher(Dispatcher dispatcher)
         {
             _dispatcher = dispatcher;
@@ -76,6 +83,14 @@ namespace Kumkat.Shell
                                 _fired = true;
                                 var pt = data.pt;
                                 _dispatcher.InvokeAsync(() => ShiftDragStarted?.Invoke(pt));
+                            }
+                            break;
+
+                        case Native.WM_MOUSEWHEEL:
+                            if (_fired && WheelDuringDrag != null)
+                            {
+                                int delta = (short)((data.mouseData >> 16) & 0xFFFF);
+                                if (WheelDuringDrag(delta)) return new IntPtr(1);
                             }
                             break;
 

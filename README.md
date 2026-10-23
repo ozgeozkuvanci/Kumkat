@@ -14,6 +14,14 @@ Hiçbir dosya internete gitmez. Uygulama sistem tepsisinde yaşar.
 | **Klasik sağ tık menüsü** | İsteğe bağlı (Windows 11'de "Diğer seçenekleri göster" altında). |
 | **Tepsi simgesine tıkla** | Dosya seçme penceresi. |
 
+**Fare tekerleği** halkanın sayfalarını çevirir (Shift+sürüklerken de çalışır; PageUp/PageDown da olur). Görsel ve videolarda üç sayfa var:
+
+| Sayfa | Görsel | Video |
+|---|---|---|
+| Dönüştür | PNG, JPG, WebP, AVIF, PDF, DOCX, ICO, BMP, TIFF | MP4, WebM, MOV, MKV, GIF, MP3 |
+| Kırp · Döndür | 1:1, 16:9, 9:16, 4:3 (ortadan kırpar), sağa/sola döndür, ayna, siyah-beyaz | aynısı |
+| Boyut · Temizle / Hız | %50, %25, uzun kenar 1920 / 1080, JPG sıkıştır, meta veriyi temizle | sıkıştır, 720p, 2× hız, sesi sil, kapak karesi |
+
 Bitince bir bildirim çıkar; tıklarsan Explorer yeni dosyayı seçili halde açar. Aynı adda dosya varsa `ad (1).webp` gibi yeni bir ad verilir, orijinale asla dokunulmaz.
 
 > Shift+sürükle Explorer'da normalde "taşı" demektir. Kumkat bırakma sırasında her zaman "kopyala" yanıtı verir, böylece Explorer kaynak dosyayı silmez.

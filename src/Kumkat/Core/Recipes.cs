@@ -17,6 +17,8 @@ namespace Kumkat.Core
         public string Id { get; set; } = "";
         public string Label { get; set; } = "";
         public List<string> Extensions { get; set; } = new List<string>();
+        /// <summary>Halka sayfalarının adları (fare tekerleğiyle geçilir). Yoksa tek sayfa.</summary>
+        public List<string>? Pages { get; set; }
         public List<RecipeAction> Actions { get; set; } = new List<RecipeAction>();
     }
 
@@ -31,6 +33,8 @@ namespace Kumkat.Core
         public string Engine { get; set; } = "";
         public List<string>? Args { get; set; }
         public string? Via { get; set; }
+        /// <summary>Hangi halka sayfasında görünür (0 = ilk).</summary>
+        public int Page { get; set; }
     }
 
     /// <summary>Radyal menüdeki bir dilim.</summary>
@@ -51,6 +55,7 @@ namespace Kumkat.Core
         public string Label => Action.Label;
         public string? Sub => Action.Sub;
         public bool IsTool => Action.Tool;
+        public int Page => Action.Page;
     }
 
     internal sealed class RecipeBook

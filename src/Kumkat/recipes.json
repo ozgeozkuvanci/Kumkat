@@ -1,50 +1,62 @@
 {
-  "$comment": "Kumkat dönüşüm tarifleri. {in} = girdi dosyası, {out} = çıktı dosyası, {outdir} = geçici çıktı klasörü, {lo_profile} = LibreOffice geçici profil URL'si. 'ext': '{same}' girdiyle aynı uzantı demektir. Engine: ffmpeg | soffice | image | pdf | img2pdf | img2docx | data | gs",
+  "$comment": "Kumkat dönüşüm tarifleri. {in} = girdi dosyası, {out} = çıktı dosyası, {outdir} = geçici çıktı klasörü, {lo_profile} = LibreOffice geçici profil URL'si. 'ext': '{same}' girdiyle aynı uzantı demektir. 'page': halka sayfası (fare tekerleğiyle geçilir, gruptaki 'pages' adlarıyla). Engine: ffmpeg | soffice | image | pdf | img2pdf | img2docx | data | gs",
   "groups": [
     {
       "id": "image",
       "label": "Görsel",
+      "pages": ["Dönüştür", "Kırp · Döndür", "Boyut · Temizle"],
       "extensions": ["png", "jpg", "jpeg", "jfif", "bmp", "gif", "tif", "tiff", "webp", "heic", "heif", "avif", "ico", "psd"],
       "actions": [
-        { "id": "png",  "label": "PNG",  "ext": "png",  "engine": "image" },
-        { "id": "jpg",  "label": "JPG",  "ext": "jpg",  "engine": "image" },
-        { "id": "webp", "label": "WEBP", "ext": "webp", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-frames:v", "1", "-c:v", "libwebp", "-quality", "85", "{out}"] },
-        { "id": "avif", "label": "AVIF", "ext": "avif", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-frames:v", "1", "-c:v", "libaom-av1", "-still-picture", "1", "-crf", "30", "-cpu-used", "6", "-pix_fmt", "yuv420p", "{out}"] },
-        { "id": "pdf",  "label": "PDF",  "ext": "pdf",  "engine": "img2pdf" },
-        { "id": "docx", "label": "DOCX", "sub": "Word", "ext": "docx", "engine": "img2docx" },
-        { "id": "ico",  "label": "ICO",  "ext": "ico",  "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale=256:256:force_original_aspect_ratio=decrease,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=0x00000000,format=rgba", "{out}"] },
-        { "id": "bmp",  "label": "BMP",  "ext": "bmp",  "engine": "image" },
-        { "id": "tiff", "label": "TIFF", "ext": "tiff", "engine": "image" },
-        { "id": "half", "label": "%50", "sub": "Küçült", "tool": true, "ext": "{same}", "suffix": "-küçük", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale=trunc(iw/2):-1", "-q:v", "3", "{out}"] },
-        { "id": "strip", "label": "Meta", "sub": "Temizle", "tool": true, "ext": "{same}", "suffix": "-temiz", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-frames:v", "1", "-map_metadata", "-1", "-q:v", "2", "{out}"] }
+        {"id": "png", "label": "PNG", "ext": "png", "engine": "image"},
+        {"id": "jpg", "label": "JPG", "ext": "jpg", "engine": "image"},
+        {"id": "webp", "label": "WEBP", "ext": "webp", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-c:v", "libwebp", "-quality", "85", "{out}"]},
+        {"id": "avif", "label": "AVIF", "ext": "avif", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-c:v", "libaom-av1", "-still-picture", "1", "-crf", "30", "-cpu-used", "6", "-pix_fmt", "yuv420p", "{out}"]},
+        {"id": "pdf", "label": "PDF", "ext": "pdf", "engine": "img2pdf"},
+        {"id": "docx", "label": "DOCX", "sub": "Word", "ext": "docx", "engine": "img2docx"},
+        {"id": "ico", "label": "ICO", "ext": "ico", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale=256:256:force_original_aspect_ratio=decrease,pad=256:256:(ow-iw)/2:(oh-ih)/2:color=0x00000000,format=rgba", "{out}"]},
+        {"id": "bmp", "label": "BMP", "ext": "bmp", "engine": "image"},
+        {"id": "tiff", "label": "TIFF", "ext": "tiff", "engine": "image"},
+        {"id": "sq", "label": "1:1", "sub": "Kare", "tool": true, "page": 1, "ext": "{same}", "suffix": "-kare", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "crop='trunc(if(gt(a,1),ih*1,iw)/2)*2':'trunc(if(gt(a,1),ih,iw/(1))/2)*2'", "-q:v", "2", "{out}"]},
+        {"id": "w169", "label": "16:9", "sub": "Yatay", "tool": true, "page": 1, "ext": "{same}", "suffix": "-16x9", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "crop='trunc(if(gt(a,16/9),ih*16/9,iw)/2)*2':'trunc(if(gt(a,16/9),ih,iw/(16/9))/2)*2'", "-q:v", "2", "{out}"]},
+        {"id": "t916", "label": "9:16", "sub": "Dikey", "tool": true, "page": 1, "ext": "{same}", "suffix": "-9x16", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "crop='trunc(if(gt(a,9/16),ih*9/16,iw)/2)*2':'trunc(if(gt(a,9/16),ih,iw/(9/16))/2)*2'", "-q:v", "2", "{out}"]},
+        {"id": "r43", "label": "4:3", "sub": "Klasik", "tool": true, "page": 1, "ext": "{same}", "suffix": "-4x3", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "crop='trunc(if(gt(a,4/3),ih*4/3,iw)/2)*2':'trunc(if(gt(a,4/3),ih,iw/(4/3))/2)*2'", "-q:v", "2", "{out}"]},
+        {"id": "rr", "label": "↻", "sub": "Sağa döndür", "tool": true, "page": 1, "ext": "{same}", "suffix": "-sağ", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "transpose=1", "-q:v", "2", "{out}"]},
+        {"id": "rl", "label": "↺", "sub": "Sola döndür", "tool": true, "page": 1, "ext": "{same}", "suffix": "-sol", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "transpose=2", "-q:v", "2", "{out}"]},
+        {"id": "fl", "label": "⇋", "sub": "Ayna", "tool": true, "page": 1, "ext": "{same}", "suffix": "-ayna", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "hflip", "-q:v", "2", "{out}"]},
+        {"id": "gr", "label": "S/B", "sub": "Siyah-beyaz", "tool": true, "page": 1, "ext": "{same}", "suffix": "-sb", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "format=gray", "-q:v", "2", "{out}"]},
+        {"id": "half", "label": "%50", "sub": "Küçült", "tool": true, "ext": "{same}", "suffix": "-küçük", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale=trunc(iw/2):-1", "-q:v", "3", "{out}"], "page": 2},
+        {"id": "quarter", "label": "%25", "sub": "Küçült", "tool": true, "page": 2, "ext": "{same}", "suffix": "-çeyrek", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale=trunc(iw/4):-1", "-q:v", "3", "{out}"]},
+        {"id": "max1920", "label": "1920", "sub": "Uzun kenar", "tool": true, "page": 2, "ext": "{same}", "suffix": "-1920", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale='if(gte(iw,ih),min(1920,iw),-2)':'if(gte(iw,ih),-2,min(1920,ih))'", "-q:v", "3", "{out}"]},
+        {"id": "max1080", "label": "1080", "sub": "Uzun kenar", "tool": true, "page": 2, "ext": "{same}", "suffix": "-1080", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale='if(gte(iw,ih),min(1080,iw),-2)':'if(gte(iw,ih),-2,min(1080,ih))'", "-q:v", "3", "{out}"]},
+        {"id": "squeeze", "label": "JPG", "sub": "Sıkıştır", "tool": true, "page": 2, "ext": "jpg", "suffix": "-sıkıştırılmış", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-q:v", "7", "{out}"]},
+        {"id": "strip", "label": "Meta", "sub": "Temizle", "tool": true, "ext": "{same}", "suffix": "-temiz", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-map_metadata", "-1", "-q:v", "2", "{out}"], "page": 2}
       ]
     },
     {
       "id": "video",
       "label": "Video",
+      "pages": ["Dönüştür", "Kırp · Döndür", "Boyut · Hız"],
       "extensions": ["mp4", "mov", "mkv", "avi", "webm", "m4v", "wmv", "flv", "mpg", "mpeg", "3gp", "ts", "mts"],
       "actions": [
-        { "id": "mp4",  "label": "MP4",  "ext": "mp4",  "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"] },
-        { "id": "webm", "label": "WEBM", "ext": "webm", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0", "-row-mt", "1", "-deadline", "good", "-cpu-used", "4", "-c:a", "libopus", "-b:a", "128k", "{out}"] },
-        { "id": "mov",  "label": "MOV",  "ext": "mov",  "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "{out}"] },
-        { "id": "mkv",  "label": "MKV",  "ext": "mkv",  "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-c:v", "libx264", "-crf", "21", "-c:a", "aac", "-b:a", "192k", "{out}"] },
-        { "id": "gif",  "label": "GIF",  "ext": "gif",  "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-vf", "fps=12,scale='min(640,iw)':-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse", "-loop", "0", "{out}"] },
-        { "id": "mp3",  "label": "MP3",  "sub": "Sesi al", "ext": "mp3", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-vn", "-c:a", "libmp3lame", "-q:a", "2", "{out}"] },
-        { "id": "small", "label": "Küçük", "sub": "Sıkıştır", "tool": true, "ext": "mp4", "suffix": "-küçük", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-vf", "scale='min(1280,iw)':-2", "-c:v", "libx264", "-preset", "slow", "-crf", "28", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", "{out}"] },
-        { "id": "mute", "label": "Sessiz", "sub": "Sesi sil", "tool": true, "ext": "{same}", "suffix": "-sessiz", "engine": "ffmpeg",
-          "args": ["-i", "{in}", "-map", "0:v", "-c", "copy", "-an", "{out}"] }
+        {"id": "mp4", "label": "MP4", "ext": "mp4", "engine": "ffmpeg", "args": ["-i", "{in}", "-c:v", "libx264", "-preset", "medium", "-crf", "23", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "webm", "label": "WEBM", "ext": "webm", "engine": "ffmpeg", "args": ["-i", "{in}", "-c:v", "libvpx-vp9", "-crf", "32", "-b:v", "0", "-row-mt", "1", "-deadline", "good", "-cpu-used", "4", "-c:a", "libopus", "-b:a", "128k", "{out}"]},
+        {"id": "mov", "label": "MOV", "ext": "mov", "engine": "ffmpeg", "args": ["-i", "{in}", "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "{out}"]},
+        {"id": "mkv", "label": "MKV", "ext": "mkv", "engine": "ffmpeg", "args": ["-i", "{in}", "-c:v", "libx264", "-crf", "21", "-c:a", "aac", "-b:a", "192k", "{out}"]},
+        {"id": "gif", "label": "GIF", "ext": "gif", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "fps=12,scale='min(640,iw)':-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse", "-loop", "0", "{out}"]},
+        {"id": "mp3", "label": "MP3", "sub": "Sesi al", "ext": "mp3", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libmp3lame", "-q:a", "2", "{out}"]},
+        {"id": "sq", "label": "1:1", "sub": "Kare", "tool": true, "page": 1, "ext": "mp4", "suffix": "-kare", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "crop='trunc(if(gt(a,1),ih*1,iw)/2)*2':'trunc(if(gt(a,1),ih,iw/(1))/2)*2'", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "w169", "label": "16:9", "sub": "Yatay", "tool": true, "page": 1, "ext": "mp4", "suffix": "-16x9", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "crop='trunc(if(gt(a,16/9),ih*16/9,iw)/2)*2':'trunc(if(gt(a,16/9),ih,iw/(16/9))/2)*2'", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "t916", "label": "9:16", "sub": "Dikey", "tool": true, "page": 1, "ext": "mp4", "suffix": "-9x16", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "crop='trunc(if(gt(a,9/16),ih*9/16,iw)/2)*2':'trunc(if(gt(a,9/16),ih,iw/(9/16))/2)*2'", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "r43", "label": "4:3", "sub": "Klasik", "tool": true, "page": 1, "ext": "mp4", "suffix": "-4x3", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "crop='trunc(if(gt(a,4/3),ih*4/3,iw)/2)*2':'trunc(if(gt(a,4/3),ih,iw/(4/3))/2)*2'", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "rr", "label": "↻", "sub": "Sağa döndür", "tool": true, "page": 1, "ext": "mp4", "suffix": "-sağ", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "transpose=1", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "rl", "label": "↺", "sub": "Sola döndür", "tool": true, "page": 1, "ext": "mp4", "suffix": "-sol", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "transpose=2", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "fl", "label": "⇋", "sub": "Ayna", "tool": true, "page": 1, "ext": "mp4", "suffix": "-ayna", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "hflip", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "gr", "label": "S/B", "sub": "Siyah-beyaz", "tool": true, "page": 1, "ext": "mp4", "suffix": "-sb", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "format=gray", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "small", "label": "Küçük", "sub": "Sıkıştır", "tool": true, "ext": "mp4", "suffix": "-küçük", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "scale='min(1280,iw)':-2", "-c:v", "libx264", "-preset", "slow", "-crf", "28", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", "{out}"], "page": 2},
+        {"id": "p720", "label": "720p", "sub": "Boyut", "tool": true, "page": 2, "ext": "mp4", "suffix": "-720p", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "scale=-2:'min(720,ih)'", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "fast2", "label": "2×", "sub": "Hızlandır", "tool": true, "page": 2, "ext": "mp4", "suffix": "-2x", "engine": "ffmpeg", "args": ["-i", "{in}", "-vf", "setpts=0.5*PTS", "-af", "atempo=2.0", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "{out}"]},
+        {"id": "mute", "label": "Sessiz", "sub": "Sesi sil", "tool": true, "ext": "{same}", "suffix": "-sessiz", "engine": "ffmpeg", "args": ["-i", "{in}", "-map", "0:v", "-c", "copy", "-an", "{out}"], "page": 2},
+        {"id": "cover", "label": "Kapak", "sub": "İlk kare", "tool": true, "page": 2, "ext": "png", "suffix": "-kapak", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "{out}"]}
       ]
     },
     {
@@ -52,12 +64,12 @@
       "label": "Ses",
       "extensions": ["mp3", "wav", "m4a", "aac", "flac", "ogg", "oga", "opus", "wma", "aif", "aiff", "amr"],
       "actions": [
-        { "id": "mp3",  "label": "MP3",  "ext": "mp3",  "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libmp3lame", "-q:a", "2", "{out}"] },
-        { "id": "m4a",  "label": "M4A",  "ext": "m4a",  "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "aac", "-b:a", "192k", "{out}"] },
-        { "id": "wav",  "label": "WAV",  "ext": "wav",  "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "pcm_s16le", "{out}"] },
-        { "id": "flac", "label": "FLAC", "ext": "flac", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "flac", "{out}"] },
-        { "id": "ogg",  "label": "OGG",  "ext": "ogg",  "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libvorbis", "-q:a", "5", "{out}"] },
-        { "id": "opus", "label": "OPUS", "ext": "opus", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libopus", "-b:a", "128k", "{out}"] }
+        {"id": "mp3", "label": "MP3", "ext": "mp3", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libmp3lame", "-q:a", "2", "{out}"]},
+        {"id": "m4a", "label": "M4A", "ext": "m4a", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "aac", "-b:a", "192k", "{out}"]},
+        {"id": "wav", "label": "WAV", "ext": "wav", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "pcm_s16le", "{out}"]},
+        {"id": "flac", "label": "FLAC", "ext": "flac", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "flac", "{out}"]},
+        {"id": "ogg", "label": "OGG", "ext": "ogg", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libvorbis", "-q:a", "5", "{out}"]},
+        {"id": "opus", "label": "OPUS", "ext": "opus", "engine": "ffmpeg", "args": ["-i", "{in}", "-vn", "-c:a", "libopus", "-b:a", "128k", "{out}"]}
       ]
     },
     {
@@ -65,12 +77,10 @@
       "label": "PDF",
       "extensions": ["pdf"],
       "actions": [
-        { "id": "png",  "label": "PNG",  "sub": "Sayfalar", "ext": "png", "engine": "pdf" },
-        { "id": "jpg",  "label": "JPG",  "sub": "Sayfalar", "ext": "jpg", "engine": "pdf" },
-        { "id": "docx", "label": "DOCX", "ext": "docx", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--infilter=writer_pdf_import", "--convert-to", "docx:MS Word 2007 XML", "--outdir", "{outdir}", "{in}"] },
-        { "id": "small", "label": "Küçük", "sub": "Sıkıştır", "tool": true, "ext": "pdf", "suffix": "-küçük", "engine": "gs",
-          "args": ["-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.5", "-dPDFSETTINGS=/ebook", "-dNOPAUSE", "-dBATCH", "-dQUIET", "-sOutputFile={out}", "{in}"] }
+        {"id": "png", "label": "PNG", "sub": "Sayfalar", "ext": "png", "engine": "pdf"},
+        {"id": "jpg", "label": "JPG", "sub": "Sayfalar", "ext": "jpg", "engine": "pdf"},
+        {"id": "docx", "label": "DOCX", "ext": "docx", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--infilter=writer_pdf_import", "--convert-to", "docx:MS Word 2007 XML", "--outdir", "{outdir}", "{in}"]},
+        {"id": "small", "label": "Küçük", "sub": "Sıkıştır", "tool": true, "ext": "pdf", "suffix": "-küçük", "engine": "gs", "args": ["-sDEVICE=pdfwrite", "-dCompatibilityLevel=1.5", "-dPDFSETTINGS=/ebook", "-dNOPAUSE", "-dBATCH", "-dQUIET", "-sOutputFile={out}", "{in}"]}
       ]
     },
     {
@@ -78,18 +88,12 @@
       "label": "Belge",
       "extensions": ["doc", "docx", "odt", "rtf", "txt", "wpd", "pages", "htm", "html"],
       "actions": [
-        { "id": "pdf",  "label": "PDF",  "ext": "pdf",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"] },
-        { "id": "docx", "label": "DOCX", "ext": "docx", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "docx:MS Word 2007 XML", "--outdir", "{outdir}", "{in}"] },
-        { "id": "odt",  "label": "ODT",  "ext": "odt",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "odt", "--outdir", "{outdir}", "{in}"] },
-        { "id": "rtf",  "label": "RTF",  "ext": "rtf",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "rtf", "--outdir", "{outdir}", "{in}"] },
-        { "id": "txt",  "label": "TXT",  "ext": "txt",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "txt:Text (encoded):UTF8", "--outdir", "{outdir}", "{in}"] },
-        { "id": "html", "label": "HTML", "ext": "html", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "html:XHTML Writer File:UTF8", "--outdir", "{outdir}", "{in}"] }
+        {"id": "pdf", "label": "PDF", "ext": "pdf", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"]},
+        {"id": "docx", "label": "DOCX", "ext": "docx", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "docx:MS Word 2007 XML", "--outdir", "{outdir}", "{in}"]},
+        {"id": "odt", "label": "ODT", "ext": "odt", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "odt", "--outdir", "{outdir}", "{in}"]},
+        {"id": "rtf", "label": "RTF", "ext": "rtf", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "rtf", "--outdir", "{outdir}", "{in}"]},
+        {"id": "txt", "label": "TXT", "ext": "txt", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "txt:Text (encoded):UTF8", "--outdir", "{outdir}", "{in}"]},
+        {"id": "html", "label": "HTML", "ext": "html", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "html:XHTML Writer File:UTF8", "--outdir", "{outdir}", "{in}"]}
       ]
     },
     {
@@ -97,14 +101,10 @@
       "label": "Tablo",
       "extensions": ["xls", "xlsx", "xlsm", "ods", "numbers"],
       "actions": [
-        { "id": "xlsx", "label": "XLSX", "ext": "xlsx", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "xlsx:Calc MS Excel 2007 XML", "--outdir", "{outdir}", "{in}"] },
-        { "id": "csv",  "label": "CSV",  "ext": "csv",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "csv:Text - txt - csv (StarCalc):44,34,76,1", "--outdir", "{outdir}", "{in}"] },
-        { "id": "pdf",  "label": "PDF",  "ext": "pdf",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"] },
-        { "id": "ods",  "label": "ODS",  "ext": "ods",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "ods", "--outdir", "{outdir}", "{in}"] }
+        {"id": "xlsx", "label": "XLSX", "ext": "xlsx", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "xlsx:Calc MS Excel 2007 XML", "--outdir", "{outdir}", "{in}"]},
+        {"id": "csv", "label": "CSV", "ext": "csv", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "csv:Text - txt - csv (StarCalc):44,34,76,1", "--outdir", "{outdir}", "{in}"]},
+        {"id": "pdf", "label": "PDF", "ext": "pdf", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"]},
+        {"id": "ods", "label": "ODS", "ext": "ods", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "ods", "--outdir", "{outdir}", "{in}"]}
       ]
     },
     {
@@ -112,14 +112,10 @@
       "label": "Sunum",
       "extensions": ["ppt", "pptx", "pps", "ppsx", "odp", "key"],
       "actions": [
-        { "id": "pdf",  "label": "PDF",  "ext": "pdf",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"] },
-        { "id": "pptx", "label": "PPTX", "ext": "pptx", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pptx:Impress MS PowerPoint 2007 XML", "--outdir", "{outdir}", "{in}"] },
-        { "id": "odp",  "label": "ODP",  "ext": "odp",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "odp", "--outdir", "{outdir}", "{in}"] },
-        { "id": "png",  "label": "PNG",  "sub": "Kapak", "ext": "png", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "png", "--outdir", "{outdir}", "{in}"] }
+        {"id": "pdf", "label": "PDF", "ext": "pdf", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"]},
+        {"id": "pptx", "label": "PPTX", "ext": "pptx", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "pptx:Impress MS PowerPoint 2007 XML", "--outdir", "{outdir}", "{in}"]},
+        {"id": "odp", "label": "ODP", "ext": "odp", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "odp", "--outdir", "{outdir}", "{in}"]},
+        {"id": "png", "label": "PNG", "sub": "Kapak", "ext": "png", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--convert-to", "png", "--outdir", "{outdir}", "{in}"]}
       ]
     },
     {
@@ -127,12 +123,10 @@
       "label": "CSV",
       "extensions": ["csv", "tsv"],
       "actions": [
-        { "id": "xlsx", "label": "XLSX", "ext": "xlsx", "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--infilter=CSV:44,34,76,1", "--convert-to", "xlsx:Calc MS Excel 2007 XML", "--outdir", "{outdir}", "{in}"] },
-        { "id": "json", "label": "JSON", "ext": "json", "engine": "data" },
-        { "id": "md",   "label": "MD",   "sub": "Tablo", "ext": "md", "engine": "data" },
-        { "id": "pdf",  "label": "PDF",  "ext": "pdf",  "engine": "soffice",
-          "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--infilter=CSV:44,34,76,1", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"] }
+        {"id": "xlsx", "label": "XLSX", "ext": "xlsx", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--infilter=CSV:44,34,76,1", "--convert-to", "xlsx:Calc MS Excel 2007 XML", "--outdir", "{outdir}", "{in}"]},
+        {"id": "json", "label": "JSON", "ext": "json", "engine": "data"},
+        {"id": "md", "label": "MD", "sub": "Tablo", "ext": "md", "engine": "data"},
+        {"id": "pdf", "label": "PDF", "ext": "pdf", "engine": "soffice", "args": ["--headless", "--norestore", "-env:UserInstallation={lo_profile}", "--infilter=CSV:44,34,76,1", "--convert-to", "pdf", "--outdir", "{outdir}", "{in}"]}
       ]
     },
     {
@@ -140,9 +134,9 @@
       "label": "JSON",
       "extensions": ["json"],
       "actions": [
-        { "id": "csv",    "label": "CSV",  "ext": "csv",  "engine": "data" },
-        { "id": "pretty", "label": "{ }",  "sub": "Düzenle", "tool": true, "ext": "json", "suffix": "-düzenli", "engine": "data" },
-        { "id": "min",    "label": "Min",  "sub": "Sıkıştır", "tool": true, "ext": "json", "suffix": "-min", "engine": "data" }
+        {"id": "csv", "label": "CSV", "ext": "csv", "engine": "data"},
+        {"id": "pretty", "label": "{ }", "sub": "Düzenle", "tool": true, "ext": "json", "suffix": "-düzenli", "engine": "data"},
+        {"id": "min", "label": "Min", "sub": "Sıkıştır", "tool": true, "ext": "json", "suffix": "-min", "engine": "data"}
       ]
     },
     {
@@ -150,9 +144,9 @@
       "label": "Markdown",
       "extensions": ["md", "markdown"],
       "actions": [
-        { "id": "html", "label": "HTML", "ext": "html", "engine": "data" },
-        { "id": "pdf",  "label": "PDF",  "ext": "pdf",  "engine": "data", "via": "html>soffice-pdf" },
-        { "id": "txt",  "label": "TXT",  "ext": "txt",  "engine": "data" }
+        {"id": "html", "label": "HTML", "ext": "html", "engine": "data"},
+        {"id": "pdf", "label": "PDF", "ext": "pdf", "engine": "data", "via": "html>soffice-pdf"},
+        {"id": "txt", "label": "TXT", "ext": "txt", "engine": "data"}
       ]
     }
   ]
