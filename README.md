@@ -1,6 +1,6 @@
 # Kumkat 🍊
 
-Windows için **tek hareketle, tamamen yerel** dosya dönüştürücü. Mac'teki Tangerine'in fikrinden esinlenildi: dosyayı açmaya, bir siteye yüklemeye, "dışa aktar" menüsü aramaya gerek yok. İmlecin etrafında dairesel bir format menüsü açılır, birini seçersin, dönüştürülmüş dosya orijinalin yanına düşer.
+Windows için **tek hareketle, tamamen yerel** dosya dönüştürücü. Dosyayı açmaya, bir siteye yüklemeye, "dışa aktar" menüsü aramaya gerek yok. İmlecin etrafında dairesel bir format menüsü açılır, birini seçersin, dönüştürülmüş dosya orijinalin yanına düşer.
 
 Hiçbir dosya internete gitmez. Uygulama sistem tepsisinde yaşar.
 
