@@ -1,0 +1,47 @@
+name: build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Derle (tek dosya, win-x64)
+        run: dotnet publish src/Kumkat/Kumkat.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o publish
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kumkat-win-x64
+          path: publish/Kumkat.exe
+      - name: Self-contained yayın (kurulum için)
+        run: dotnet publish src/Kumkat/Kumkat.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:DebugType=none -o publish-sc
+      - name: Kurulum dosyası (Inno Setup)
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Qp installer\Kumkat.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kumkat-Kurulum
+          path: dist/*.exe
+
+  recipes:
+    # recipes.json içindeki FFmpeg / LibreOffice komutlarını gerçek dosyalarla dener
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Araçları kur
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libreoffice-writer libreoffice-calc libreoffice-impress
+          pip install pillow python-pptx
+      - name: Örnek dosyaları üret
+        run: python tests/make_samples.py samples
+      - name: Tarifleri çalıştır
+        run: python tests/run_recipes.py samples out

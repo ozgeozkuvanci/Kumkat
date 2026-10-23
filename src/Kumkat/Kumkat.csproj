@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.17763.0</SupportedOSPlatformVersion>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- WinForms + WPF birlikte: örtük using'ler Application/Point/Color gibi çakışmalar doğurur -->
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>Kumkat</RootNamespace>
+    <AssemblyName>Kumkat</AssemblyName>
+    <StartupObject>Kumkat.Program</StartupObject>
+    <ApplicationIcon>Assets\kumkat.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Version>0.1.0</Version>
+    <Product>Kumkat</Product>
+    <Description>Tek hareketle yerel dosya dönüştürücü</Description>
+    <SatelliteResourceLanguages>tr;en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="recipes.json" />
+    <None Remove="Assets\kumkat.ico" />
+    <EmbeddedResource Include="recipes.json" LogicalName="Kumkat.recipes.json" />
+    <EmbeddedResource Include="Assets\kumkat.ico" LogicalName="Kumkat.kumkat.ico" />
+  </ItemGroup>
+
+</Project>

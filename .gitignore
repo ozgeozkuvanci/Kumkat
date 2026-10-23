@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+.vs/
+*.user
+samples/
+out/
+__pycache__/
+publish-sc/
+dist/
