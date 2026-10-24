@@ -313,7 +313,6 @@ namespace Kumkat
                 Title = Loc.T("Dönüştürülecek dosyaları seç"),
                 Multiselect = true,
                 Filter = Loc.T("Tüm dosyalar (*.*)|*.*"),
-                RightToLeft = Loc.Rtl,
             };
             if (dlg.ShowDialog() == Forms.DialogResult.OK && dlg.FileNames.Length > 0)
                 ShowMenuFor(dlg.FileNames);
