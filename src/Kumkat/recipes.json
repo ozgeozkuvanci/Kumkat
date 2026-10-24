@@ -1,5 +1,5 @@
 {
-  "$comment": "Kumkat dönüşüm tarifleri. {in} = girdi dosyası, {out} = çıktı dosyası, {outdir} = geçici çıktı klasörü, {lo_profile} = LibreOffice geçici profil URL'si. 'ext': '{same}' girdiyle aynı uzantı demektir. {fx} {fy} {fw} {fh} = 'interactive': 'crop' tariflerinde kullanıcının seçtiği alan (0–1 oran). 'page': halka sayfası (fare tekerleğiyle geçilir, gruptaki 'pages' adlarıyla). Engine: ffmpeg | soffice | image | pdf | img2pdf | img2docx | data | gs",
+  "$comment": "Kumkat dönüşüm tarifleri. {in} = girdi dosyası, {out} = çıktı dosyası, {outdir} = geçici çıktı klasörü, {lo_profile} = LibreOffice geçici profil URL'si. 'ext': '{same}' girdiyle aynı uzantı demektir. {fx} {fy} {fw} {fh} = 'interactive': 'crop' tariflerinde kullanıcının seçtiği alan (0–1 oran). 'page': halka sayfası (fare tekerleğiyle geçilir, gruptaki 'pages' adlarıyla). 'mode'/'scale': aseprite motoru için (ilk kare / kareler / şerit / gif, en yakın komşu büyütme). Engine: ffmpeg | soffice | image | pdf | img2pdf | img2docx | data | gs",
   "groups": [
     {
       "id": "image",
@@ -31,6 +31,25 @@
         {"id": "max1080", "label": "1080", "sub": "Uzun kenar", "tool": true, "page": 2, "ext": "{same}", "suffix": "-1080", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-vf", "scale='if(gte(iw,ih),min(1080,iw),-2)':'if(gte(iw,ih),-2,min(1080,ih))'", "-q:v", "3", "{out}"]},
         {"id": "squeeze", "label": "JPG", "sub": "Sıkıştır", "tool": true, "page": 2, "ext": "jpg", "suffix": "-sıkıştırılmış", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-q:v", "7", "{out}"]},
         {"id": "strip", "label": "Meta", "sub": "Temizle", "tool": true, "ext": "{same}", "suffix": "-temiz", "engine": "ffmpeg", "args": ["-i", "{in}", "-frames:v", "1", "-map_metadata", "-1", "-q:v", "2", "{out}"], "page": 2}
+      ]
+    },
+    {
+      "id": "aseprite",
+      "label": "Aseprite",
+      "pages": ["Dönüştür", "Animasyon · Büyüt"],
+      "extensions": ["aseprite", "ase"],
+      "actions": [
+        {"id": "png", "label": "PNG", "sub": "İlk kare", "ext": "png", "engine": "aseprite", "mode": "first"},
+        {"id": "gif", "label": "GIF", "sub": "Animasyon", "ext": "gif", "engine": "aseprite", "mode": "gif", "via": "ffmpeg"},
+        {"id": "sheet", "label": "Şerit", "sub": "Sprite sheet", "ext": "png", "suffix": "-şerit", "engine": "aseprite", "mode": "sheet"},
+        {"id": "frames", "label": "Kareler", "sub": "Tek tek", "ext": "png", "engine": "aseprite", "mode": "frames"},
+        {"id": "jpg", "label": "JPG", "sub": "İlk kare", "ext": "jpg", "engine": "aseprite", "mode": "first"},
+        {"id": "gif4", "label": "GIF ×4", "sub": "Animasyon", "tool": true, "page": 1, "ext": "gif", "suffix": "-x4", "engine": "aseprite", "mode": "gif", "scale": 4, "via": "ffmpeg"},
+        {"id": "x2", "label": "×2", "sub": "Piksel", "tool": true, "page": 1, "ext": "png", "suffix": "-x2", "engine": "aseprite", "mode": "first", "scale": 2},
+        {"id": "x4", "label": "×4", "sub": "Piksel", "tool": true, "page": 1, "ext": "png", "suffix": "-x4", "engine": "aseprite", "mode": "first", "scale": 4},
+        {"id": "x8", "label": "×8", "sub": "Piksel", "tool": true, "page": 1, "ext": "png", "suffix": "-x8", "engine": "aseprite", "mode": "first", "scale": 8},
+        {"id": "sheet4", "label": "Şerit ×4", "sub": "Sprite sheet", "tool": true, "page": 1, "ext": "png", "suffix": "-şerit-x4", "engine": "aseprite", "mode": "sheet", "scale": 4},
+        {"id": "frames4", "label": "Kareler", "sub": "×4", "tool": true, "page": 1, "ext": "png", "suffix": "-x4", "engine": "aseprite", "mode": "frames", "scale": 4}
       ]
     },
     {

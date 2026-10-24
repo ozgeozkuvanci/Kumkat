@@ -37,6 +37,10 @@ namespace Kumkat.Core
         public int Page { get; set; }
         /// <summary>"crop": dönüştürmeden önce kullanıcıdan alan seçmesi istenir ({fx} {fy} {fw} {fh}).</summary>
         public string? Interactive { get; set; }
+        /// <summary>Aseprite: "first" (ilk kare), "frames" (tüm kareler), "sheet" (şerit), "gif" (animasyon).</summary>
+        public string? Mode { get; set; }
+        /// <summary>Piksel piksel büyütme katı (en yakın komşu). 0/1 = büyütme yok.</summary>
+        public int Scale { get; set; }
     }
 
     /// <summary>Radyal menüdeki bir dilim.</summary>

@@ -157,6 +157,16 @@ namespace Kumkat.Core
             ["Hızlandır"] = "زرّب",
             ["İlk kare"] = "أول تصويرة",
 
+            // Aseprite
+            ["Animasyon · Büyüt"] = "أنيماسيون · كبّر",
+            ["Animasyon"] = "أنيماسيون",
+            ["Şerit"] = "شريط",
+            ["Şerit ×4"] = "شريط ×4",
+            ["Kareler"] = "التصاور",
+            ["Tek tek"] = "وحدة بوحدة",
+            ["Piksel"] = "بيكسل",
+            ["{0} (kareler)"] = "{0} (التصاور)",
+
             // ------------------------------------------------------- kırpma penceresi
             ["Kumkat — Kırp: {0}"] = "كومكات — قصّ: {0}",
             ["Orijinal"] = "الأصلي",
@@ -183,6 +193,8 @@ namespace Kumkat.Core
             ["PSD kanal sayısı eksik."] = "الكانالات ديال PSD ناقصين.",
             ["PSD boyutu geçersiz."] = "القياس ديال PSD غالط.",
             ["Bu PSD sıkıştırma türü desteklenmiyor (ZIP)."] = "هاد النوع ديال الضغط ف PSD ما مدعومش (ZIP).",
+            ["Geçerli bir Aseprite dosyası değil."] = "هادا ماشي فيشي Aseprite صحيح.",
+            ["Aseprite dosyasında kare yok."] = "فيشي Aseprite ما فيه حتى تصويرة.",
             ["JSON bir dizi (veya dizi içeren bir nesne) olmalı."] = "الـ JSON خاصو يكون ليستة (ولا أوبجي فيه ليستة).",
         };
 

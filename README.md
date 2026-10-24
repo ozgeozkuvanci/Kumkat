@@ -39,6 +39,7 @@ Bitince bir bildirim çıkar; tıklarsan Explorer yeni dosyayı seçili halde a�
 | Belge: DOCX, DOC, ODT, RTF, TXT, HTML | PDF, DOCX, ODT, RTF, TXT, HTML | |
 | Tablo: XLSX, XLS, ODS | XLSX, CSV, PDF, ODS | |
 | Sunum: PPTX, PPT, ODP, KEY | PDF, PPTX, ODP, PNG (kapak) | |
+| Aseprite (.aseprite, .ase) | PNG / JPG (ilk kare), animasyonlu GIF (kare süreleri korunur, FFmpeg ister), sprite sheet şeridi, tüm kareler ayrı ayrı | ×2 / ×4 / ×8 piksel piksel büyütme, GIF ×4, şerit ×4 |
 | CSV / TSV | XLSX, JSON, Markdown tablo, PDF | |
 | JSON | CSV | Düzenle (girintile), küçült |
 | Markdown | HTML, PDF, TXT | |
@@ -134,5 +135,6 @@ Ayarlar ve günlük: `%AppData%\Kumkat\` (settings.json, kumkat.log).
 - HEIC/AVIF/WebP okuma önce Windows codec'leriyle denenir, olmazsa FFmpeg'e düşer.
 - Görsel/PSD → DOCX görseli A4 bir Word sayfasına yerleştirir; içindeki yazılar düzenlenebilir metne dönüşmez (OCR yok).
 - PSD → PNG/JPG/PDF/BMP/TIFF kendi okuyucusuyla, FFmpeg olmadan çalışır (RGB/CMYK/Gri, 8/16 bit). PSD → WebP/AVIF/ICO ve küçültme araçları FFmpeg ister.
+- Aseprite dosyaları kendi okuyucusuyla açılır: görünür katmanlar birleştirilir; gruplar, bağlı kareler, z-sırası, indexed/gri renk ve tilemap katmanları desteklenir. Karışım modları (multiply vb.) normal olarak uygulanır.
 - PSD dosyalarından Photoshop'un kaydettiği birleşik (düzleştirilmiş) görüntü okunur; katmanlar ayrı ayrı alınmaz. PSD "Uyumluluğu en üst düzeye çıkar" kapalı kaydedildiyse bu görüntü boş/beyaz olabilir. PSB (büyük belge) desteklenmez.
 - LibreOffice'in PDF→DOCX dönüşümü düzeni korur ama metni çerçeveler içinde verir; düzenlenebilir akıcı metin beklemeyin.

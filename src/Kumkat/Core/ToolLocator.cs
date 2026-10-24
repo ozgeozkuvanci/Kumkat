@@ -36,6 +36,8 @@ namespace Kumkat.Core
                 case "ffmpeg": return Ffmpeg == null ? "FFmpeg" : null;
                 case "soffice": return Soffice == null ? "LibreOffice" : null;
                 case "gs": return Ghostscript == null ? "Ghostscript" : null;
+                case "aseprite":
+                    return via == "ffmpeg" && Ffmpeg == null ? "FFmpeg" : null;
                 case "data":
                     if (via != null && via.Contains("soffice")) return Soffice == null ? "LibreOffice" : null;
                     return null;

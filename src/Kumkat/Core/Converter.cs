@@ -58,6 +58,8 @@ namespace Kumkat.Core
                     case "img2pdf":
                         produced = await ImageToPdfAsync(input, tmp, ct).ConfigureAwait(false);
                         break;
+                    case "aseprite":
+                        return await AsepriteAsync(input, action, outExt, dir, stem, tmp, ct).ConfigureAwait(false);
                     case "img2docx":
                         produced = await ImageToDocxAsync(input, tmp, ct).ConfigureAwait(false);
                         break;
@@ -142,6 +144,115 @@ namespace Kumkat.Core
             var r = await ProcessRunner.RunAsync(ffmpeg, args, ShortTimeout, ct).ConfigureAwait(false);
             EnsureProduced(output, r, "FFmpeg");
             return output;
+        }
+
+        // ---------------------------------------------------------------- Aseprite
+
+        private async Task<string> AsepriteAsync(string input, RecipeAction action, string outExt, string dir, string stem, string tmp, CancellationToken ct)
+        {
+            var img = await Task.Run(() => AsepriteReader.Read(input), ct).ConfigureAwait(false);
+            int scale = Math.Max(1, action.Scale);
+            string mode = action.Mode ?? "first";
+
+            if (mode == "gif")
+            {
+                string gif = await AsepriteGifAsync(img, scale, tmp, ct).ConfigureAwait(false);
+                string finalGif = AppPaths.UniqueFile(dir, stem, "gif");
+                File.Move(gif, finalGif);
+                return finalGif;
+            }
+
+            if (mode == "frames" && img.Frames.Count > 1)
+            {
+                string folder = AppPaths.UniqueDir(dir, Loc.F("{0} (kareler)", stem));
+                Directory.CreateDirectory(folder);
+                for (int i = 0; i < img.Frames.Count; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    var frame = img.Frames[i];
+                    string path = Path.Combine(folder, $"{Path.GetFileNameWithoutExtension(input)}-{i + 1:000}.{outExt}");
+                    await StaRunner.Run(() => ImageEngine.Save(AsepriteReader.ToBitmap(img.Width, img.Height, frame.Rgba, scale), path, outExt)).ConfigureAwait(false);
+                }
+                return folder;
+            }
+
+            string output = Path.Combine(tmp, "out." + outExt);
+            if (mode == "sheet")
+            {
+                await StaRunner.Run(() =>
+                {
+                    var sheet = AsepriteReader.ToSheet(img);
+                    if (scale > 1)
+                    {
+                        // şeridi piksel piksel büyüt
+                        int w = sheet.PixelWidth, h = sheet.PixelHeight;
+                        var bgra = new byte[w * h * 4];
+                        sheet.CopyPixels(bgra, w * 4, 0);
+                        var rgba = new byte[bgra.Length];
+                        for (int i = 0; i < bgra.Length; i += 4)
+                        {
+                            rgba[i] = bgra[i + 2]; rgba[i + 1] = bgra[i + 1]; rgba[i + 2] = bgra[i]; rgba[i + 3] = bgra[i + 3];
+                        }
+                        sheet = AsepriteReader.ToBitmap(w, h, rgba, scale);
+                    }
+                    ImageEngine.Save(sheet, output, outExt);
+                }).ConfigureAwait(false);
+            }
+            else
+            {
+                var first = img.Frames[0];
+                await StaRunner.Run(() => ImageEngine.Save(AsepriteReader.ToBitmap(img.Width, img.Height, first.Rgba, scale), output, outExt)).ConfigureAwait(false);
+            }
+
+            string final = AppPaths.UniqueFile(dir, stem, outExt);
+            File.Move(output, final);
+            return final;
+        }
+
+        /// <summary>
+        /// Animasyonlu GIF: kare süreleri korunur. FFmpeg'e sabit hızlı bir dizi verilir; hız sürelerin ortak böleni
+        /// (GIF'in 10 ms birimine yuvarlanmış), uzun kareler o kadar tekrarlanır. Saydamlık korunur.
+        /// </summary>
+        private async Task<string> AsepriteGifAsync(AseImage img, int scale, string tmp, CancellationToken ct)
+        {
+            string ffmpeg = _tools.Ffmpeg ?? throw new InvalidOperationException(Loc.F("{0} bulunamadı.", "FFmpeg"));
+            var durations = img.Frames.Select(f => Math.Max(10, (int)Math.Round(f.DurationMs / 10.0) * 10)).ToList();
+            int g = durations.Aggregate(Gcd);
+            // aşırı kare tekrarını önle
+            while (durations.Sum() / g > 4000 && g < 1000) g += 10;
+
+            string seq = Path.Combine(tmp, "seq");
+            Directory.CreateDirectory(seq);
+            int k = 0;
+            for (int i = 0; i < img.Frames.Count; i++)
+            {
+                ct.ThrowIfCancellationRequested();
+                var frame = img.Frames[i];
+                string first = Path.Combine(seq, $"{k:00000}.png");
+                await StaRunner.Run(() => ImageEngine.Save(AsepriteReader.ToBitmap(img.Width, img.Height, frame.Rgba, scale), first, "png")).ConfigureAwait(false);
+                k++;
+                int copies = Math.Max(1, (int)Math.Round(durations[i] / (double)g));
+                for (int c = 1; c < copies; c++, k++) File.Copy(first, Path.Combine(seq, $"{k:00000}.png"));
+            }
+
+            string output = Path.Combine(tmp, "out.gif");
+            var args = FfmpegPrefix.Concat(new[]
+            {
+                "-framerate", $"1000/{g}",
+                "-i", Path.Combine(seq, "%05d.png"),
+                "-vf", "split[a][b];[a]palettegen=reserve_transparent=1:stats_mode=full[p];[b][p]paletteuse=dither=none:alpha_threshold=128",
+                "-loop", "0",
+                output,
+            });
+            var r = await ProcessRunner.RunAsync(ffmpeg, args, ShortTimeout, ct).ConfigureAwait(false);
+            EnsureProduced(output, r, "FFmpeg");
+            return output;
+        }
+
+        private static int Gcd(int a, int b)
+        {
+            while (b != 0) (a, b) = (b, a % b);
+            return a;
         }
 
         // ------------------------------------------------------------- önizleme
