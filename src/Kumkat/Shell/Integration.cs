@@ -94,7 +94,7 @@ namespace Kumkat.Shell
         public static void SetStartup(bool enable)
         {
             using var k = Registry.CurrentUser.CreateSubKey(RunKey);
-            if (enable) k.SetValue(AppName, "\"" + Exe + "\"");
+            if (enable) k.SetValue(AppName, "\"" + Exe + "\" --autostart");
             else k.DeleteValue(AppName, false);
         }
 

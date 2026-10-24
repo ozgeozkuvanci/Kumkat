@@ -10,6 +10,9 @@ namespace Kumkat.Core
         public bool HotkeyEnabled { get; set; } = true;
         public bool FirstRunDone { get; set; }
 
+        /// <summary>Windows ile başlatma bir kez ayarlandı mı (ilk çalıştırmada varsayılan olarak açılır; sonra kullanıcının seçimi korunur).</summary>
+        public bool StartupConfigured { get; set; }
+
         /// <summary>"tr", "ar" (Fas Arapçası) veya null = Windows diline göre.</summary>
         public string? Language { get; set; }
 

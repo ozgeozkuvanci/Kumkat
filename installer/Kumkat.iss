@@ -37,17 +37,17 @@ Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
 
 [Tasks]
 Name: "darija"; Description: "Kumkat'ı Fas Arapçasıyla kullan  ·  استعمل كومكات بالدارجة"; GroupDescription: "Dil / اللغة:"; Flags: unchecked
-Name: "startup"; Description: "Windows açılınca Kumkat'ı başlat"; GroupDescription: "Kumkat:"
-Name: "sendto"; Description: "Sağ tık › Gönder menüsüne ekle"; GroupDescription: "Kumkat:"
-Name: "ctxmenu"; Description: "Klasik sağ tık menüsüne de ekle"; GroupDescription: "Kumkat:"; Flags: unchecked
-Name: "ffmpeg"; Description: "FFmpeg'i kur — ses, video, PSD, WebP, AVIF için (internet gerekir)"; GroupDescription: "Yardımcı araçlar (winget ile):"
-Name: "libreoffice"; Description: "LibreOffice'i kur — Word, Excel, PowerPoint için (~350 MB, yönetici onayı ister)"; GroupDescription: "Yardımcı araçlar (winget ile):"; Flags: unchecked
+Name: "startup"; Description: "Bilgisayar açılınca Kumkat'ı otomatik başlat  ·  شعّل كومكات أوتوماتيكيا ملي يتشعل البيسي"; GroupDescription: "Kumkat:"
+Name: "sendto"; Description: "Sağ tık › Gönder menüsüne ekle  ·  زيد كومكات لـ كليك ليمن › صيفط لـ"; GroupDescription: "Kumkat:"
+Name: "ctxmenu"; Description: "Klasik sağ tık menüsüne de ekle  ·  زيدو حتى للمينو الكلاسيكي ديال الكليك ليمن"; GroupDescription: "Kumkat:"; Flags: unchecked
+Name: "ffmpeg"; Description: "FFmpeg'i kur — ses, video, WebP, AVIF için  ·  ركّب FFmpeg — للصوت والفيديو (خاص الأنترنيت)"; GroupDescription: "Yardımcı araçlar · أدوات مساعدة (winget):"
+Name: "libreoffice"; Description: "LibreOffice'i kur — Word, Excel, PowerPoint için (~350 MB)  ·  ركّب LibreOffice — لـ Word و Excel و PowerPoint"; GroupDescription: "Yardımcı araçlar · أدوات مساعدة (winget):"; Flags: unchecked
 
 [Files]
 Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{userprograms}\{#AppName}"; Filename: "{app}\Kumkat.exe"; Comment: "Dosya dönüştürücü"
+Name: "{userprograms}\{#AppName}"; Filename: "{app}\Kumkat.exe"; Comment: "Dosya dönüştürücü · مبدّل الفيشيات"
 
 [Run]
 Filename: "{app}\Kumkat.exe"; Parameters: "--setup{code:SetupArgs}"; StatusMsg: "Windows entegrasyonu ayarlanıyor..."; Flags: runhidden waituntilterminated

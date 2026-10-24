@@ -96,6 +96,16 @@ namespace Kumkat
             Task.Run(() => PipeLoopAsync(_shutdown.Token));
             Integration.RefreshPaths();
 
+            // Windows açılınca otomatik başla: ilk çalıştırmada varsayılan olarak açık.
+            // Kullanıcı tepsi menüsünden ya da kurulumda kapattıysa ona dokunma.
+            if (!_settings.StartupConfigured)
+            {
+                try { Integration.SetStartup(true); }
+                catch (Exception ex) { Log.Error("startup-default", ex); }
+                _settings.StartupConfigured = true;
+                _settings.Save();
+            }
+
             if (!_settings.FirstRunDone)
             {
                 _settings.FirstRunDone = true;
@@ -150,7 +160,11 @@ namespace Kumkat
             }));
             items.Add(Check(Loc.T("Sağ tık › Gönder › Kumkat"), Integration.SendToInstalled, on => Integration.SetSendTo(on)));
             items.Add(Check(Loc.T("Sağ tık menüsü (klasik / \"Diğer seçenekler\")"), Integration.ContextMenuInstalled, on => Integration.SetContextMenu(on)));
-            items.Add(Check(Loc.T("Windows ile başlat"), Integration.StartupEnabled, on => Integration.SetStartup(on)));
+            items.Add(Check(Loc.T("Windows ile başlat"), Integration.StartupEnabled, on =>
+            {
+                Integration.SetStartup(on);
+                _settings.StartupConfigured = true;
+            }));
             items.Add(new Forms.ToolStripSeparator());
 
             var toolsMenu = new Forms.ToolStripMenuItem(Loc.T("Araçlar"));

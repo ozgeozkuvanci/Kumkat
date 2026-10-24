@@ -22,6 +22,8 @@ Hiçbir dosya internete gitmez. Uygulama sistem tepsisinde yaşar.
 | Kırp · Döndür | **Serbest kırp** (önizlemede fareyle alan seç), 1:1, 16:9, 9:16, 4:3 (ortadan), sağa/sola döndür, ayna, siyah-beyaz | aynısı (önizleme ilk kareden) |
 | Boyut · Temizle / Hız | %50, %25, uzun kenar 1920 / 1080, JPG sıkıştır, meta veriyi temizle | sıkıştır, 720p, 2× hız, sesi sil, kapak karesi |
 
+Kumkat ilk çalıştığında kendini Windows açılışına ekler (hangi dilde olursa olsun); bilgisayar her açıldığında tepside hazır bekler. Kapatmak için tepsi menüsünden **Windows ile başlat** işaretini kaldır ya da kurulumda o seçeneği boş bırak.
+
 Bitince bir bildirim çıkar; tıklarsan Explorer yeni dosyayı seçili halde açar. Aynı adda dosya varsa `ad (1).webp` gibi yeni bir ad verilir, orijinale asla dokunulmaz.
 
 > Shift+sürükle Explorer'da normalde "taşı" demektir. Kumkat bırakma sırasında her zaman "kopyala" yanıtı verir, böylece Explorer kaynak dosyayı silmez.
