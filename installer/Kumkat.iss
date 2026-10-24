@@ -19,14 +19,16 @@
   #define MsgLibre "كنركّب LibreOffice (يقدر ياخد شي دقايق)..."
   #define MsgLaunch "شعّل كومكات دابا"
   ; konsol penceresi Arapça harfleri gösteremeyebilir: İngilizce
-  #define EchoFail(str Tool) Tool + " could not be installed. Try again from the Kumkat tray menu ^> Tools."
+  #define FailFfmpeg "FFmpeg could not be installed. Try again from the Kumkat tray menu ^> Tools."
+  #define FailLibre "LibreOffice could not be installed. Try again from the Kumkat tray menu ^> Tools."
 #else
   #define IconComment "Dosya dönüştürücü · مبدّل الفيشيات"
   #define MsgSetup "Windows entegrasyonu ayarlanıyor..."
   #define MsgFfmpeg "FFmpeg kuruluyor (birkaç dakika sürebilir)..."
   #define MsgLibre "LibreOffice kuruluyor (birkaç dakika sürebilir)..."
   #define MsgLaunch "Kumkat'ı şimdi başlat"
-  #define EchoFail(str Tool) Tool + " kurulamadi. Kumkat tepsi menusu ^> Araclar bolumunden tekrar deneyebilirsiniz."
+  #define FailFfmpeg "FFmpeg kurulamadi. Kumkat tepsi menusu ^> Araclar bolumunden tekrar deneyebilirsiniz."
+  #define FailLibre "LibreOffice kurulamadi. Kumkat tepsi menusu ^> Araclar bolumunden tekrar deneyebilirsiniz."
 #endif
 
 [Setup]
@@ -94,8 +96,8 @@ Name: "{userprograms}\{#AppName}"; Filename: "{app}\Kumkat.exe"; Comment: "{#Ico
 
 [Run]
 Filename: "{app}\Kumkat.exe"; Parameters: "--setup{code:SetupArgs}"; StatusMsg: "{#MsgSetup}"; Flags: runhidden waituntilterminated
-Filename: "{cmd}"; Parameters: "/c winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements || (echo. & echo {#EchoFail("FFmpeg")} & pause)"; StatusMsg: "{#MsgFfmpeg}"; Tasks: ffmpeg; Flags: waituntilterminated
-Filename: "{cmd}"; Parameters: "/c winget install --id TheDocumentFoundation.LibreOffice -e --accept-source-agreements --accept-package-agreements || (echo. & echo {#EchoFail("LibreOffice")} & pause)"; StatusMsg: "{#MsgLibre}"; Tasks: libreoffice; Flags: waituntilterminated
+Filename: "{cmd}"; Parameters: "/c winget install --id Gyan.FFmpeg -e --accept-source-agreements --accept-package-agreements || (echo. & echo {#FailFfmpeg} & pause)"; StatusMsg: "{#MsgFfmpeg}"; Tasks: ffmpeg; Flags: waituntilterminated
+Filename: "{cmd}"; Parameters: "/c winget install --id TheDocumentFoundation.LibreOffice -e --accept-source-agreements --accept-package-agreements || (echo. & echo {#FailLibre} & pause)"; StatusMsg: "{#MsgLibre}"; Tasks: libreoffice; Flags: waituntilterminated
 Filename: "{app}\Kumkat.exe"; Description: "{#MsgLaunch}"; Flags: postinstall nowait skipifsilent
 
 [UninstallRun]
