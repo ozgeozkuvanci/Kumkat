@@ -130,6 +130,7 @@ namespace Kumkat.UI
 
             _centerTitle = new TextBlock
             {
+                FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
                 Foreground = TitleBrush,
                 FontSize = 19,
                 FontWeight = FontWeights.Bold,
@@ -138,6 +139,7 @@ namespace Kumkat.UI
             };
             _centerSub = new TextBlock
             {
+                FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
                 Foreground = CenterSubBrush,
                 FontSize = 10.5,
                 TextAlignment = TextAlignment.Center,
@@ -178,7 +180,7 @@ namespace Kumkat.UI
                 Drop += OnDrop;
             }
 
-            SetModel(null, dropMode ? "Bırak" : "", dropMode ? "Dosyayı bir dilime bırak" : "");
+            SetModel(null, dropMode ? Loc.T("Bırak") : "", dropMode ? Loc.T("Dosyayı bir dilime bırak") : "");
         }
 
         private static Brush Frozen(Color c)
@@ -257,6 +259,7 @@ namespace Kumkat.UI
 
                     var label = new TextBlock
                     {
+                        FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
                         Text = entry.Label,
                         FontSize = n > 10 ? 13 : 15,
                         FontWeight = FontWeights.Bold,
@@ -265,7 +268,8 @@ namespace Kumkat.UI
                     };
                     var subLabel = new TextBlock
                     {
-                        Text = entry.Sub ?? (entry.IsTool ? "araç" : ""),
+                        FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
+                        Text = entry.Sub ?? (entry.IsTool ? Loc.T("araç") : ""),
                         FontSize = 10,
                         Foreground = entry.Enabled ? LabelSubBrush : LabelDisabledBrush,
                         TextAlignment = TextAlignment.Center,
@@ -320,6 +324,7 @@ namespace Kumkat.UI
             string dots = string.Join(" ", Enumerable.Range(0, _model.Pages.Count).Select(i => i == _page ? "●" : "○"));
             var text = new TextBlock
             {
+                FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight,
                 Text = $"{_model.Pages[_page].Title}   {dots}",
                 Foreground = PillTextBrush,
                 FontSize = 11,
@@ -536,7 +541,7 @@ namespace Kumkat.UI
                 Paint(_sectors[_hover], e.Enabled ? HoverBrush : DisabledHoverBrush);
                 _labels[_hover][0].Foreground = LabelHoverBrush;
                 _labels[_hover][1].Foreground = e.Enabled ? LabelHoverSubBrush : LabelHoverBrush;
-                ShowCenter(e.Enabled ? "→ " + e.Label : e.Label, e.Enabled ? (e.Sub ?? _model!.Sub) : (e.DisabledReason ?? "Kullanılamıyor"));
+                ShowCenter(e.Enabled ? Loc.T("→ ") + e.Label : e.Label, e.Enabled ? (e.Sub ?? _model!.Sub) : (e.DisabledReason ?? Loc.T("Kullanılamıyor")));
             }
             else if (_model != null)
             {
@@ -650,7 +655,7 @@ namespace Kumkat.UI
                 {
                     var model = FilesProvider(files);
                     if (model != null) SetModel(model);
-                    else ShowCenter("?", "Bu dosya türü desteklenmiyor");
+                    else ShowCenter("?", Loc.T("Bu dosya türü desteklenmiyor"));
                 }
             }
             OnDragOver(sender, e);
@@ -702,7 +707,7 @@ namespace Kumkat.UI
 
         public static string DescribeFiles(IReadOnlyList<string> files)
         {
-            return files.Count == 1 ? Path.GetFileName(files[0]) : $"{files.Count} dosya";
+            return files.Count == 1 ? Path.GetFileName(files[0]) : Loc.F("{0} dosya", files.Count);
         }
 
         public static string TitleFor(IReadOnlyList<string> files)

@@ -36,6 +36,7 @@ CloseApplications=no
 Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
 
 [Tasks]
+Name: "darija"; Description: "Kumkat'ı Fas Arapçasıyla kullan  ·  استعمل كومكات بالدارجة"; GroupDescription: "Dil / اللغة:"; Flags: unchecked
 Name: "startup"; Description: "Windows açılınca Kumkat'ı başlat"; GroupDescription: "Kumkat:"
 Name: "sendto"; Description: "Sağ tık › Gönder menüsüne ekle"; GroupDescription: "Kumkat:"
 Name: "ctxmenu"; Description: "Klasik sağ tık menüsüne de ekle"; GroupDescription: "Kumkat:"; Flags: unchecked
@@ -65,6 +66,25 @@ begin
   if WizardIsTaskSelected('startup') then Result := Result + ' startup';
   if WizardIsTaskSelected('sendto') then Result := Result + ' sendto';
   if WizardIsTaskSelected('ctxmenu') then Result := Result + ' ctxmenu';
+  if WizardIsTaskSelected('darija') then Result := Result + ' lang=ar' else Result := Result + ' lang=tr';
+end;
+
+// Windows arayüzü Arapça ya da bölge Fas ise Darija seçeneğini önceden işaretle
+function GetUserGeoID(GeoClass: Integer): Integer;
+  external 'GetUserGeoID@kernel32.dll stdcall';
+
+var
+  LangTaskInit: Boolean;
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if (CurPageID = wpSelectTasks) and (not LangTaskInit) then
+  begin
+    LangTaskInit := True;
+    // LANG_ARABIC = 0x01, GEOCLASS_NATION = 16, Fas = 159
+    if ((GetUILanguage and $3FF) = $01) or (GetUserGeoID(16) = 159) then
+      WizardSelectTasks('darija');
+  end;
 end;
 
 // Güncellemede çalışan Kumkat exe'yi kilitler: kurulumdan önce kapat

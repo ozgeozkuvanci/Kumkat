@@ -10,6 +10,9 @@ namespace Kumkat.Core
         public bool HotkeyEnabled { get; set; } = true;
         public bool FirstRunDone { get; set; }
 
+        /// <summary>"tr", "ar" (Fas Arapçası) veya null = Windows diline göre.</summary>
+        public string? Language { get; set; }
+
         /// <summary>Boş bırakılırsa otomatik bulunur.</summary>
         public string? FfmpegPath { get; set; }
         public string? SofficePath { get; set; }

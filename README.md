@@ -43,6 +43,10 @@ Bitince bir bildirim çıkar; tıklarsan Explorer yeni dosyayı seçili halde a�
 
 Aynı türden birden çok dosya seçilirse hepsi sırayla dönüştürülür.
 
+## Dil
+
+Kumkat Türkçe ve **Fas Arapçası (الدارجة المغربية)** ile geliyor. Windows'un dili Arapça ya da bölgesi Fas ise Kumkat kendiliğinden Darija açılıyor. Tepsi menüsündeki **Dil / اللغة** bölümünden değiştirilebilir. Kurulum sihirbazında da bir "Darija" seçeneği var. Çeviriler `src/Kumkat/Core/Loc.cs` dosyasında; Türkçe metin anahtar olarak kullanılıyor, Darija karşılığı yoksa Türkçe görünüyor.
+
 ## Gerekenler
 
 - Windows 10 (1809+) veya 11, x64

@@ -54,8 +54,8 @@ namespace Kumkat.Core
         public RecipeAction Action { get; }
         public bool Enabled { get; }
         public string? DisabledReason { get; }
-        public string Label => Action.Label;
-        public string? Sub => Action.Sub;
+        public string Label => Loc.T(Action.Label);
+        public string? Sub => Action.Sub == null ? null : Loc.T(Action.Sub);
         public bool IsTool => Action.Tool;
         public int Page => Action.Page;
     }
@@ -150,7 +150,7 @@ namespace Kumkat.Core
                 if (sameFormat && string.IsNullOrEmpty(a.Suffix)) continue; // PNG -> PNG gösterme
 
                 string? missing = tools.MissingToolFor(a.Engine, a.Via);
-                list.Add(new MenuEntry(group, a, missing == null, missing == null ? null : missing + " gerekli"));
+                list.Add(new MenuEntry(group, a, missing == null, missing == null ? null : Loc.F("{0} gerekli", missing)));
             }
             return list;
         }

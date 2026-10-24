@@ -25,6 +25,14 @@ namespace Kumkat
             if (setupAt >= 0)
             {
                 var opts = args.Skip(setupAt + 1).Select(a => a.ToLowerInvariant()).ToList();
+                // kurulumda seçilen dil: "lang=ar" / "lang=tr" (yoksa Windows diline göre)
+                string? lang = opts.FirstOrDefault(o => o.StartsWith("lang=", StringComparison.Ordinal))?.Substring(5);
+                if (lang == Loc.Turkish || lang == Loc.Darija)
+                {
+                    var s = Settings.Load();
+                    s.Language = lang;
+                    s.Save();
+                }
                 Kumkat.Shell.Integration.ApplySetup(
                     startup: opts.Contains("startup"),
                     sendTo: opts.Contains("sendto"),

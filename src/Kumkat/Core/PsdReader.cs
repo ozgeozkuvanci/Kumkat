@@ -18,10 +18,10 @@ namespace Kumkat.Core
             int p = 0;
 
             if (d.Length < 26 || d[0] != (byte)'8' || d[1] != (byte)'B' || d[2] != (byte)'P' || d[3] != (byte)'S')
-                throw new InvalidDataException("Geçerli bir PSD dosyası değil.");
+                throw new InvalidDataException(Loc.T("Geçerli bir PSD dosyası değil."));
             int version = U16(d, 4);
-            if (version == 2) throw new NotSupportedException("PSB (büyük belge) biçimi desteklenmiyor.");
-            if (version != 1) throw new InvalidDataException("Bilinmeyen PSD sürümü.");
+            if (version == 2) throw new NotSupportedException(Loc.T("PSB (büyük belge) biçimi desteklenmiyor."));
+            if (version != 1) throw new InvalidDataException(Loc.T("Bilinmeyen PSD sürümü."));
 
             int channels = U16(d, 12);
             int h = checked((int)U32(d, 14));
@@ -45,11 +45,11 @@ namespace Kumkat.Core
                 1 => 1, // gri
                 3 => 3, // RGB
                 4 => 4, // CMYK
-                _ => throw new NotSupportedException($"Bu PSD renk modu desteklenmiyor ({mode}). RGB, CMYK veya Gri olmalı."),
+                _ => throw new NotSupportedException(Loc.F("Bu PSD renk modu desteklenmiyor ({0}). RGB, CMYK veya Gri olmalı.", mode)),
             };
-            if (depth != 8 && depth != 16) throw new NotSupportedException($"{depth} bit PSD desteklenmiyor (8 veya 16 olmalı).");
-            if (channels < need) throw new InvalidDataException("PSD kanal sayısı eksik.");
-            if (w <= 0 || h <= 0) throw new InvalidDataException("PSD boyutu geçersiz.");
+            if (depth != 8 && depth != 16) throw new NotSupportedException(Loc.F("{0} bit PSD desteklenmiyor (8 veya 16 olmalı).", depth));
+            if (channels < need) throw new InvalidDataException(Loc.T("PSD kanal sayısı eksik."));
+            if (w <= 0 || h <= 0) throw new InvalidDataException(Loc.T("PSD boyutu geçersiz."));
 
             int bpc = depth / 8;
             int rowBytes = w * bpc;
@@ -82,7 +82,7 @@ namespace Kumkat.Core
             }
             else
             {
-                throw new NotSupportedException("Bu PSD sıkıştırma türü desteklenmiyor (ZIP).");
+                throw new NotSupportedException(Loc.T("Bu PSD sıkıştırma türü desteklenmiyor (ZIP)."));
             }
 
             int stride = (w * 3 + 3) & ~3;

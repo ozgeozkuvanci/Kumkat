@@ -226,7 +226,7 @@ namespace Kumkat.Core
                     }
                 }
             }
-            if (!found) throw new InvalidDataException("JSON bir dizi (veya dizi içeren bir nesne) olmalı.");
+            if (!found) throw new InvalidDataException(Loc.T("JSON bir dizi (veya dizi içeren bir nesne) olmalı."));
 
             var headers = new List<string>();
             foreach (var item in array.EnumerateArray())

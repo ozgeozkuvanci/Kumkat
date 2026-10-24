@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Kumkat.Core;
 using ShapePath = System.Windows.Shapes.Path;
 using ShapeRect = System.Windows.Shapes.Rectangle;
 using ShapeLine = System.Windows.Shapes.Line;
@@ -67,7 +68,7 @@ namespace Kumkat.UI
             _pixW = image.PixelWidth;
             _pixH = image.PixelHeight;
 
-            Title = "Kumkat — Kırp: " + fileName;
+            Title = Loc.F("Kumkat — Kırp: {0}", fileName);
             Background = Bg;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             ResizeMode = ResizeMode.NoResize;
@@ -122,21 +123,21 @@ namespace Kumkat.UI
             _canvas.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2 && _sel.Contains(e.GetPosition(_canvas))) Confirm(); };
 
             // ---------------------------------------------------- üst çubuk
-            var bar = new DockPanel { Background = Bar, LastChildFill = false };
+            var bar = new DockPanel { Background = Bar, LastChildFill = false, FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight };
             var ratios = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 9, 12, 9), VerticalAlignment = VerticalAlignment.Center };
-            AddRatio(ratios, "Serbest", null, true);
+            AddRatio(ratios, Loc.T("Serbest"), null, true);
             AddRatio(ratios, "1:1", 1.0, false);
             AddRatio(ratios, "4:3", 4.0 / 3, false);
             AddRatio(ratios, "3:2", 3.0 / 2, false);
             AddRatio(ratios, "16:9", 16.0 / 9, false);
             AddRatio(ratios, "9:16", 9.0 / 16, false);
-            AddRatio(ratios, "Orijinal", (double)_pixW / _pixH, false);
+            AddRatio(ratios, Loc.T("Orijinal"), (double)_pixW / _pixH, false);
             DockPanel.SetDock(ratios, Dock.Left);
             bar.Children.Add(ratios);
 
             var actions = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 9, 12, 9), VerticalAlignment = VerticalAlignment.Center };
-            var cancel = MakeButton("İptal", false, CloseOnce);
-            var ok = MakeButton(fileCount > 1 ? $"Kırp ({fileCount} dosya)" : "Kırp", true, Confirm);
+            var cancel = MakeButton(Loc.T("İptal"), false, CloseOnce);
+            var ok = MakeButton(fileCount > 1 ? Loc.F("Kırp ({0} dosya)", fileCount) : Loc.T("Kırp"), true, Confirm);
             actions.Children.Add(cancel);
             actions.Children.Add(ok);
             DockPanel.SetDock(actions, Dock.Right);
@@ -150,10 +151,10 @@ namespace Kumkat.UI
                 FontSize = 11.5,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(16, 0, 0, 0),
-                Text = "Sürükleyerek alan çiz · köşelerden boyutlandır · içinden taşı · oklar: kaydır · Enter: kırp · Esc: iptal" +
-                       (fileCount > 1 ? " · aynı oransal alan tüm dosyalara uygulanır" : ""),
+                Text = Loc.T("Sürükleyerek alan çiz · köşelerden boyutlandır · içinden taşı · oklar: kaydır · Enter: kırp · Esc: iptal") +
+                       (fileCount > 1 ? Loc.T(" · aynı oransal alan tüm dosyalara uygulanır") : ""),
             };
-            var footer = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 6, 12, 8) };
+            var footer = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(12, 6, 12, 8), FlowDirection = Loc.Rtl ? FlowDirection.RightToLeft : FlowDirection.LeftToRight };
             footer.Children.Add(_sizeText);
             footer.Children.Add(hint);
 

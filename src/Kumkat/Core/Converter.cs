@@ -30,7 +30,7 @@ namespace Kumkat.Core
             IReadOnlyDictionary<string, string>? vars = null)
         {
             input = Path.GetFullPath(input);
-            if (!File.Exists(input)) throw new FileNotFoundException("Dosya bulunamadı.", input);
+            if (!File.Exists(input)) throw new FileNotFoundException(Loc.T("Dosya bulunamadı."), input);
 
             string inExt = RecipeBook.ExtOf(input);
             string outExt = RecipeBook.ResolveOutputExt(group, action, inExt);
@@ -101,7 +101,7 @@ namespace Kumkat.Core
         {
             if (r.ExitCode == 0 && File.Exists(path) && new FileInfo(path).Length > 0) return;
             string detail = ProcessRunner.Tail(r.StdErr.Length > 0 ? r.StdErr : r.StdOut, 400);
-            throw new InvalidOperationException($"{tool} dönüştüremedi (kod {r.ExitCode}). {detail}".Trim());
+            throw new InvalidOperationException((Loc.F("{0} dönüştüremedi (kod {1}).", tool, r.ExitCode) + " " + detail).Trim());
         }
 
         // ----------------------------------------------------------------- FFmpeg
@@ -109,7 +109,7 @@ namespace Kumkat.Core
         private async Task<string> FfmpegAsync(string input, string inExt, string outExt, List<string>? args, string tmp, CancellationToken ct,
             IReadOnlyDictionary<string, string>? vars = null)
         {
-            string ffmpeg = _tools.Ffmpeg ?? throw new InvalidOperationException("FFmpeg bulunamadı.");
+            string ffmpeg = _tools.Ffmpeg ?? throw new InvalidOperationException(Loc.F("{0} bulunamadı.", "FFmpeg"));
             if (args == null || args.Count == 0) throw new InvalidOperationException("Tarifte ffmpeg argümanı yok.");
 
             string source = input;
@@ -136,7 +136,7 @@ namespace Kumkat.Core
 
         private async Task<string> FfmpegDecodeToPngAsync(string input, string tmp, CancellationToken ct)
         {
-            string ffmpeg = _tools.Ffmpeg ?? throw new InvalidOperationException("Bu görsel biçimini okumak için FFmpeg gerekli.");
+            string ffmpeg = _tools.Ffmpeg ?? throw new InvalidOperationException(Loc.T("Bu görsel biçimini okumak için FFmpeg gerekli."));
             string output = Path.Combine(tmp, "decoded-ff.png");
             var args = FfmpegPrefix.Concat(new[] { "-i", input, "-frames:v", "1", output });
             var r = await ProcessRunner.RunAsync(ffmpeg, args, ShortTimeout, ct).ConfigureAwait(false);
@@ -176,7 +176,7 @@ namespace Kumkat.Core
 
         private async Task<string> SofficeAsync(string input, string outExt, List<string>? args, string tmp, CancellationToken ct)
         {
-            string soffice = _tools.Soffice ?? throw new InvalidOperationException("LibreOffice bulunamadı.");
+            string soffice = _tools.Soffice ?? throw new InvalidOperationException(Loc.F("{0} bulunamadı.", "LibreOffice"));
             if (args == null || args.Count == 0) throw new InvalidOperationException("Tarifte soffice argümanı yok.");
 
             // LibreOffice çıktıyı girdinin adıyla yazar: tahmin edilebilir olsun diye sabit adla kopyala.
@@ -205,7 +205,7 @@ namespace Kumkat.Core
                 // LibreOffice bazen dosyayı üretip sıfır olmayan kodla çıkar: belirleyici olan dosyanın varlığı
                 if (File.Exists(expected) && new FileInfo(expected).Length > 0) return expected;
                 string detail = ProcessRunner.Tail(r.StdErr.Length > 0 ? r.StdErr : r.StdOut, 400);
-                throw new InvalidOperationException($"LibreOffice dönüştüremedi (kod {r.ExitCode}). {detail}".Trim());
+                throw new InvalidOperationException((Loc.F("{0} dönüştüremedi (kod {1}).", "LibreOffice", r.ExitCode) + " " + detail).Trim());
             }
             finally
             {
@@ -217,7 +217,7 @@ namespace Kumkat.Core
 
         private async Task<string> GhostscriptAsync(string input, string outExt, List<string>? args, string tmp, CancellationToken ct)
         {
-            string gs = _tools.Ghostscript ?? throw new InvalidOperationException("Ghostscript bulunamadı.");
+            string gs = _tools.Ghostscript ?? throw new InvalidOperationException(Loc.F("{0} bulunamadı.", "Ghostscript"));
             if (args == null) throw new InvalidOperationException("Tarifte gs argümanı yok.");
             string output = Path.Combine(tmp, "out." + outExt);
             var r = await ProcessRunner.RunAsync(gs, Substitute(args, input, output, tmp), LongTimeout, ct).ConfigureAwait(false);
@@ -225,7 +225,7 @@ namespace Kumkat.Core
 
             // Küçültme işe yaramadıysa (çıktı daha büyükse) bunu bildir
             if (new FileInfo(output).Length >= new FileInfo(input).Length)
-                throw new InvalidOperationException("PDF zaten sıkıştırılmış; daha küçük bir sürüm üretilemedi.");
+                throw new InvalidOperationException(Loc.T("PDF zaten sıkıştırılmış; daha küçük bir sürüm üretilemedi."));
             return output;
         }
 
@@ -299,7 +299,7 @@ namespace Kumkat.Core
         private async Task<string> PdfPagesAsync(string input, string outExt, string dir, string stem, string tmp, CancellationToken ct)
         {
             var pngs = await PdfEngine.RenderPagesToPngAsync(input, tmp, 2.0, ct).ConfigureAwait(false);
-            if (pngs.Count == 0) throw new InvalidOperationException("PDF'te sayfa yok.");
+            if (pngs.Count == 0) throw new InvalidOperationException(Loc.T("PDF'te sayfa yok."));
 
             var pages = new List<string>();
             foreach (var png in pngs)

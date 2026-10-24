@@ -49,6 +49,7 @@ namespace Kumkat
         {
             _dispatcher = Dispatcher.CurrentDispatcher;
             _settings = Settings.Load();
+            Loc.Apply(_settings.Language);
             _tools = new ToolLocator(_settings);
             _converter = new Converter(_tools);
             _book = RecipeBook.Load();
@@ -99,9 +100,9 @@ namespace Kumkat
             {
                 _settings.FirstRunDone = true;
                 _settings.Save();
-                Notify("Kumkat hazır",
-                    $"Explorer'da Shift basılıyken bir dosyayı sürükle ya da dosyayı seçip {HotkeyText}'ya bas." +
-                    (_tools.Ffmpeg == null || _tools.Soffice == null ? " Eksik araçlar için tepsi menüsü › Araçlar." : ""),
+                Notify(Loc.T("Kumkat hazır"),
+                    Loc.F("Explorer'da Shift basılıyken bir dosyayı sürükle ya da dosyayı seçip {0}'ya bas.", HotkeyText) +
+                    (_tools.Ffmpeg == null || _tools.Soffice == null ? Loc.T(" Eksik araçlar için tepsi menüsü › Araçlar.") : ""),
                     Forms.ToolTipIcon.Info);
             }
         }
@@ -127,53 +128,74 @@ namespace Kumkat
             if (_tray?.ContextMenuStrip == null) return;
             var items = _tray.ContextMenuStrip.Items;
             items.Clear();
+            _tray.ContextMenuStrip.RightToLeft = Loc.Rtl ? Forms.RightToLeft.Yes : Forms.RightToLeft.No;
 
-            items.Add(new Forms.ToolStripMenuItem("Dosya seç ve dönüştür…", null, (_, __) => PickFilesAndConvert()) { Font = Bold() });
+            items.Add(new Forms.ToolStripMenuItem(Loc.T("Dosya seç ve dönüştür…"), null, (_, __) => PickFilesAndConvert()) { Font = Bold() });
             items.Add(new Forms.ToolStripSeparator());
 
-            items.Add(Check("Shift + sürükle ile menü aç", _settings.ShiftDragEnabled, on =>
+            items.Add(Check(Loc.T("Shift + sürükle ile menü aç"), _settings.ShiftDragEnabled, on =>
             {
                 _settings.ShiftDragEnabled = on;
                 if (on) _dragWatcher?.Start(); else _dragWatcher?.Stop();
             }));
-            items.Add(Check($"{HotkeyText} kısayolu (Explorer seçimi)", _settings.HotkeyEnabled, on =>
+            items.Add(Check(Loc.F("{0} kısayolu (Explorer seçimi)", HotkeyText), _settings.HotkeyEnabled, on =>
             {
                 _settings.HotkeyEnabled = on;
                 if (on)
                 {
                     if (_hotkey != null && !_hotkey.Register(Native.MOD_CONTROL | Native.MOD_ALT, HotkeyVk))
-                        Notify("Kısayol alınamadı", $"{HotkeyText} başka bir uygulama tarafından kullanılıyor.", Forms.ToolTipIcon.Warning);
+                        Notify(Loc.T("Kısayol alınamadı"), Loc.F("{0} başka bir uygulama tarafından kullanılıyor.", HotkeyText), Forms.ToolTipIcon.Warning);
                 }
                 else _hotkey?.Unregister();
             }));
-            items.Add(Check("Sağ tık › Gönder › Kumkat", Integration.SendToInstalled, on => Integration.SetSendTo(on)));
-            items.Add(Check("Sağ tık menüsü (klasik / \"Diğer seçenekler\")", Integration.ContextMenuInstalled, on => Integration.SetContextMenu(on)));
-            items.Add(Check("Windows ile başlat", Integration.StartupEnabled, on => Integration.SetStartup(on)));
+            items.Add(Check(Loc.T("Sağ tık › Gönder › Kumkat"), Integration.SendToInstalled, on => Integration.SetSendTo(on)));
+            items.Add(Check(Loc.T("Sağ tık menüsü (klasik / \"Diğer seçenekler\")"), Integration.ContextMenuInstalled, on => Integration.SetContextMenu(on)));
+            items.Add(Check(Loc.T("Windows ile başlat"), Integration.StartupEnabled, on => Integration.SetStartup(on)));
             items.Add(new Forms.ToolStripSeparator());
 
-            var toolsMenu = new Forms.ToolStripMenuItem("Araçlar");
-            AddToolStatus(toolsMenu, "FFmpeg", _tools.Ffmpeg, "ses, video, WebP/AVIF/ICO", "Gyan.FFmpeg");
-            AddToolStatus(toolsMenu, "LibreOffice", _tools.Soffice, "Word, Excel, PowerPoint, PDF→DOCX", "TheDocumentFoundation.LibreOffice");
-            AddToolStatus(toolsMenu, "Ghostscript", _tools.Ghostscript, "PDF sıkıştırma (isteğe bağlı)", "ArtifexSoftware.GhostScript");
+            var toolsMenu = new Forms.ToolStripMenuItem(Loc.T("Araçlar"));
+            AddToolStatus(toolsMenu, "FFmpeg", _tools.Ffmpeg, Loc.T("ses, video, WebP/AVIF/ICO"), "Gyan.FFmpeg");
+            AddToolStatus(toolsMenu, "LibreOffice", _tools.Soffice, Loc.T("Word, Excel, PowerPoint, PDF→DOCX"), "TheDocumentFoundation.LibreOffice");
+            AddToolStatus(toolsMenu, "Ghostscript", _tools.Ghostscript, Loc.T("PDF sıkıştırma (isteğe bağlı)"), "ArtifexSoftware.GhostScript");
             toolsMenu.DropDownItems.Add(new Forms.ToolStripSeparator());
-            toolsMenu.DropDownItems.Add(new Forms.ToolStripMenuItem("Yeniden tara", null, (_, __) =>
+            toolsMenu.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.T("Yeniden tara"), null, (_, __) =>
             {
                 _tools.Refresh();
-                Notify("Araçlar tarandı",
-                    $"FFmpeg: {(_tools.Ffmpeg != null ? "var" : "yok")} · LibreOffice: {(_tools.Soffice != null ? "var" : "yok")} · Ghostscript: {(_tools.Ghostscript != null ? "var" : "yok")}",
+                string Has(string? p) => Loc.T(p != null ? "var" : "yok");
+                Notify(Loc.T("Araçlar tarandı"),
+                    $"FFmpeg: {Has(_tools.Ffmpeg)} · LibreOffice: {Has(_tools.Soffice)} · Ghostscript: {Has(_tools.Ghostscript)}",
                     Forms.ToolTipIcon.Info);
             }));
             items.Add(toolsMenu);
 
-            var advanced = new Forms.ToolStripMenuItem("Gelişmiş");
-            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem("Tarifleri düzenle (recipes.json)…", null, (_, __) => EditRecipes()));
-            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem("Tarifleri yeniden yükle", null, (_, __) => ReloadRecipes()));
-            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem("Günlüğü aç", null, (_, __) => OpenWithShell(Path.Combine(AppPaths.DataDir, "kumkat.log"))));
-            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem("Ayarlar klasörü", null, (_, __) => OpenWithShell(AppPaths.DataDir)));
+            var advanced = new Forms.ToolStripMenuItem(Loc.T("Gelişmiş"));
+            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.T("Tarifleri düzenle (recipes.json)…"), null, (_, __) => EditRecipes()));
+            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.T("Tarifleri yeniden yükle"), null, (_, __) => ReloadRecipes()));
+            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.T("Günlüğü aç"), null, (_, __) => OpenWithShell(Path.Combine(AppPaths.DataDir, "kumkat.log"))));
+            advanced.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.T("Ayarlar klasörü"), null, (_, __) => OpenWithShell(AppPaths.DataDir)));
             items.Add(advanced);
 
+            var langMenu = new Forms.ToolStripMenuItem("Dil / اللغة");
+            AddLanguage(langMenu, Loc.T("Otomatik (Windows dili)"), null);
+            AddLanguage(langMenu, "Türkçe", Loc.Turkish);
+            AddLanguage(langMenu, "الدارجة المغربية", Loc.Darija);
+            items.Add(langMenu);
+
             items.Add(new Forms.ToolStripSeparator());
-            items.Add(new Forms.ToolStripMenuItem("Çıkış", null, (_, __) => Exit()));
+            items.Add(new Forms.ToolStripMenuItem(Loc.T("Çıkış"), null, (_, __) => Exit()));
+        }
+
+        private void AddLanguage(Forms.ToolStripMenuItem parent, string text, string? lang)
+        {
+            var item = new Forms.ToolStripMenuItem(text) { Checked = _settings.Language == lang };
+            item.Click += (_, __) =>
+            {
+                _settings.Language = lang;
+                _settings.Save();
+                Loc.Apply(lang);
+                BuildMenu(); // menü bir sonraki açılışta yeni dilde
+            };
+            parent.DropDownItems.Add(item);
         }
 
         private static System.Drawing.Font Bold() => new System.Drawing.Font(Forms.SystemInformation.MenuFont, System.Drawing.FontStyle.Bold);
@@ -191,7 +213,7 @@ namespace Kumkat
                 catch (Exception ex)
                 {
                     Log.Error("menu-toggle", ex);
-                    Notify("Ayar değiştirilemedi", ex.Message, Forms.ToolTipIcon.Error);
+                    Notify(Loc.T("Ayar değiştirilemedi"), ex.Message, Forms.ToolTipIcon.Error);
                 }
             };
             return item;
@@ -201,12 +223,12 @@ namespace Kumkat
         {
             if (path != null)
             {
-                parent.DropDownItems.Add(new Forms.ToolStripMenuItem($"✓ {name} — {purpose}") { Enabled = false, ToolTipText = path });
+                parent.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.F("✓ {0} — {1}", name, purpose)) { Enabled = false, ToolTipText = path });
             }
             else
             {
-                parent.DropDownItems.Add(new Forms.ToolStripMenuItem($"✗ {name} yok — {purpose}") { Enabled = false });
-                parent.DropDownItems.Add(new Forms.ToolStripMenuItem($"    {name}'i kur (winget)", null, (_, __) => WingetInstall(wingetId)));
+                parent.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.F("✗ {0} yok — {1}", name, purpose)) { Enabled = false });
+                parent.DropDownItems.Add(new Forms.ToolStripMenuItem(Loc.F("    {0}'i kur (winget)", name), null, (_, __) => WingetInstall(wingetId)));
             }
         }
 
@@ -224,7 +246,7 @@ namespace Kumkat
             }
             catch (Exception ex)
             {
-                Notify("winget başlatılamadı", ex.Message, Forms.ToolTipIcon.Error);
+                Notify(Loc.T("winget başlatılamadı"), ex.Message, Forms.ToolTipIcon.Error);
             }
         }
 
@@ -247,11 +269,11 @@ namespace Kumkat
             try
             {
                 _book = RecipeBook.Load();
-                Notify("Tarifler yüklendi", $"{_book.File.Groups.Sum(g => g.Actions.Count)} dönüşüm hazır.", Forms.ToolTipIcon.Info);
+                Notify(Loc.T("Tarifler yüklendi"), Loc.F("{0} dönüşüm hazır.", _book.File.Groups.Sum(g => g.Actions.Count)), Forms.ToolTipIcon.Info);
             }
             catch (Exception ex)
             {
-                Notify("recipes.json okunamadı", ex.Message, Forms.ToolTipIcon.Error);
+                Notify(Loc.T("recipes.json okunamadı"), ex.Message, Forms.ToolTipIcon.Error);
             }
         }
 
@@ -288,9 +310,10 @@ namespace Kumkat
         {
             using var dlg = new Forms.OpenFileDialog
             {
-                Title = "Dönüştürülecek dosyaları seç",
+                Title = Loc.T("Dönüştürülecek dosyaları seç"),
                 Multiselect = true,
-                Filter = "Tüm dosyalar (*.*)|*.*",
+                Filter = Loc.T("Tüm dosyalar (*.*)|*.*"),
+                RightToLeft = Loc.Rtl,
             };
             if (dlg.ShowDialog() == Forms.DialogResult.OK && dlg.FileNames.Length > 0)
                 ShowMenuFor(dlg.FileNames);
@@ -317,7 +340,7 @@ namespace Kumkat
 
             if (files.Count == 0)
             {
-                Notify("Seçili dosya yok", $"Explorer'da dosyaları seçip {HotkeyText}'ya bas (masaüstü için önce Ctrl+C).", Forms.ToolTipIcon.Info);
+                Notify(Loc.T("Seçili dosya yok"), Loc.F("Explorer'da dosyaları seçip {0}'ya bas (masaüstü için önce Ctrl+C).", HotkeyText), Forms.ToolTipIcon.Info);
                 return;
             }
             ShowMenuFor(files);
@@ -355,13 +378,15 @@ namespace Kumkat
             {
                 var onPage = entries.Where(e => e.Page == i).ToList();
                 if (onPage.Count == 0) continue;
-                string pageTitle = group.Pages != null && i < group.Pages.Count ? group.Pages[i] : (i == 0 ? "Dönüştür" : $"Sayfa {i + 1}");
+                string pageTitle = group.Pages != null && i < group.Pages.Count ? Loc.T(group.Pages[i])
+                                 : i == 0 ? Loc.T("Dönüştür")
+                                 : Loc.F("Sayfa {0}", i + 1);
                 pages.Add(new MenuPage(pageTitle, onPage));
             }
 
             string sub = RadialMenuWindow.DescribeFiles(same);
             int skipped = files.Count - same.Count;
-            if (skipped > 0) sub += $" (+{skipped} farklı tür atlandı)";
+            if (skipped > 0) sub += Loc.F(" (+{0} farklı tür atlandı)", skipped);
             return new MenuModel(same, pages, RadialMenuWindow.TitleFor(same), sub);
         }
 
@@ -371,7 +396,7 @@ namespace Kumkat
             if (model == null)
             {
                 string ext = files.Count > 0 ? RecipeBook.ExtOf(files[0]).ToUpperInvariant() : "?";
-                Notify("Desteklenmeyen dosya", $".{ext} için tanımlı dönüşüm yok. (Gelişmiş › Tarifleri düzenle)", Forms.ToolTipIcon.Warning);
+                Notify(Loc.T("Desteklenmeyen dosya"), Loc.F(".{0} için tanımlı dönüşüm yok. (Gelişmiş › Tarifleri düzenle)", ext), Forms.ToolTipIcon.Warning);
                 return;
             }
 
@@ -429,7 +454,7 @@ namespace Kumkat
         {
             try
             {
-                UpdateTrayText("önizleme hazırlanıyor…");
+                UpdateTrayText(Loc.T("önizleme hazırlanıyor…"));
                 var preview = await _converter.LoadPreviewAsync(files[0], entry.Group, _shutdown.Token);
                 UpdateTrayText();
 
@@ -452,7 +477,7 @@ namespace Kumkat
             {
                 UpdateTrayText();
                 Log.Error("crop", ex);
-                Notify("Kırpma açılamadı", ex.Message, Forms.ToolTipIcon.Error);
+                Notify(Loc.T("Kırpma açılamadı"), ex.Message, Forms.ToolTipIcon.Error);
             }
         }
 
@@ -493,16 +518,16 @@ namespace Kumkat
                 }
 
                 if (outputs.Count > 0) _lastOutput = outputs[outputs.Count - 1];
-                string took = sw.Elapsed.TotalSeconds < 1 ? "" : $" ({sw.Elapsed.TotalSeconds:0.#} sn)";
+                string took = sw.Elapsed.TotalSeconds < 1 ? "" : Loc.F(" ({0:0.#} sn)", sw.Elapsed.TotalSeconds);
 
                 if (errors.Count == 0)
                 {
-                    string what = outputs.Count == 1 ? Path.GetFileName(outputs[0]) : $"{outputs.Count} dosya {entry.Label} oldu";
-                    Notify("✓ Hazır" + took, what + " — göstermek için tıkla", Forms.ToolTipIcon.Info);
+                    string what = outputs.Count == 1 ? Path.GetFileName(outputs[0]) : Loc.F("{0} dosya {1} oldu", outputs.Count, entry.Label);
+                    Notify(Loc.T("✓ Hazır") + took, what + Loc.T(" — göstermek için tıkla"), Forms.ToolTipIcon.Info);
                 }
                 else
                 {
-                    string head = outputs.Count > 0 ? $"{outputs.Count} tamam, {errors.Count} hata" : "Dönüştürülemedi";
+                    string head = outputs.Count > 0 ? Loc.F("{0} tamam, {1} hata", outputs.Count, errors.Count) : Loc.T("Dönüştürülemedi");
                     Notify(head, string.Join("\n", errors.Take(3)), Forms.ToolTipIcon.Error);
                 }
             }
@@ -520,8 +545,8 @@ namespace Kumkat
         private void UpdateTrayText(string? status = null)
         {
             if (_tray == null) return;
-            string text = status != null ? "Kumkat — " + status
-                        : _queued > 0 ? $"Kumkat — {_queued} dosya sırada" : "Kumkat";
+            string text = status != null ? Loc.F("Kumkat — {0}", status)
+                        : _queued > 0 ? Loc.F("Kumkat — {0} dosya sırada", _queued) : "Kumkat";
             _tray.Text = text.Length > 120 ? text.Substring(0, 119) + "…" : text;
         }
 
