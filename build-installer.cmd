@@ -30,10 +30,12 @@ if errorlevel 1 goto :fail
 echo [2/2] Kurulum dosyasi olusturuluyor...
 "%ISCC%" /Qp installer\Kumkat.iss
 if errorlevel 1 goto :fail
+"%ISCC%" /Qp /DARABIC installer\Kumkat.iss
+if errorlevel 1 goto :fail
 
 echo.
 echo Hazir:
-dir /b dist\Kumkat-Kurulum-*.exe
+dir /b dist\*.exe
 start "" explorer.exe "%CD%\dist"
 pause
 exit /b 0

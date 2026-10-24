@@ -71,7 +71,7 @@ Kurduktan sonra Araçlar › **Yeniden tara**. PNG/JPG/BMP/TIFF/GIF dönüşüml
 build-installer.cmd
 ```
 
-`dist\Kumkat-Kurulum-0.1.0.exe` üretir. Kurulumda şu seçenekler sorulur: Windows ile başlat, Gönder menüsü, klasik sağ tık menüsü, FFmpeg (varsayılan açık) ve LibreOffice. Kaldırma işlemi Ayarlar › Uygulamalar'dan yapılır ve Kumkat'ın eklediği her şeyi temizler.
+İki kurulum dosyası üretir: `dist\Kumkat-Kurulum-0.1.0.exe` (Türkçe sihirbaz) ve `dist\Kumkat-Setup-Arabic-0.1.0.exe` (Arapça, sağdan sola sihirbaz; Kumkat Darija açılır). Kurulumda şu seçenekler sorulur: Windows ile başlat, Gönder menüsü, klasik sağ tık menüsü, FFmpeg (varsayılan açık) ve LibreOffice. Kaldırma işlemi Ayarlar › Uygulamalar'dan yapılır ve Kumkat'ın eklediği her şeyi temizler.
 
 Derlemek için bir kerelik Inno Setup gerekir: `winget install --id JRSoftware.InnoSetup -e`
 

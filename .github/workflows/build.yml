@@ -26,10 +26,15 @@ jobs:
         run: |
           if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) { choco install innosetup -y --no-progress }
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Qp installer\Kumkat.iss
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" /Qp /DARABIC installer\Kumkat.iss
       - uses: actions/upload-artifact@v4
         with:
           name: Kumkat-Kurulum
-          path: dist/*.exe
+          path: dist/Kumkat-Kurulum-*.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Kumkat-Setup-Arabic
+          path: dist/Kumkat-Setup-Arabic-*.exe
 
   recipes:
     # recipes.json içindeki FFmpeg / LibreOffice komutlarını gerçek dosyalarla dener
